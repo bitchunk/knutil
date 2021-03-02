@@ -7,7 +7,7 @@
 # シーンの利用
 ## [ MKSCENES ] シーンを作成する
 ```
-SCENES, INDEXES = MKSCENES( { UPD, DRW, KEY } )
+SCENES, INDEXES = MKSCENES( { 'UPD', 'DRW', 'KEY' } )
 ```
 SCENES: 生成されたシーンが格納されています。
 INDEXES: 生成した順にシーンを実行するために必要です。
@@ -20,10 +20,10 @@ CMDSCENES([[
 ...
 ]])
 ```
-- [SCENE NAME]: MKSCENESで生成した名前を指定します。
-- [COMMAND]:下記のORDER COMMANDSを指定します。
-- [FUNCTION]: グローバル関数の名前を指定します。
-- [DURATION FRAME]: 持続するフレーム数を指定します。0で指定すると自動的に終了しません。
+- [SCENE NAME] : MKSCENESで生成した名前を指定します。
+- [COMMAND] :下記のORDER COMMANDSを指定します。
+- [FUNCTION] : グローバル関数の名前を指定します。
+- [DURATION FRAME] : 持続するフレーム数を指定します。0で指定すると自動的に終了しません。
 
 
 ### ORDER COMMANDS
@@ -100,8 +100,8 @@ durationとcountはデフォルトの場合、CMDSCENESで指定したものが�
 `return 1`をするか、`ORDER.rm = 1`をする。
 
 このライブラリの中で私が既に投稿したものがあります。
-HTBL
-VDMP
+- HTBL
+- VDMP
 
 説明がされていない関数（別の機会に投稿します）
 - TONORM
