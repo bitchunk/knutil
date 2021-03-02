@@ -1,89 +1,89 @@
-#KNUTIL SCENE MANAGER
-"KNUTIL"�͎������쐬�����Q�[���ŁA�g�p�p�x�̍����֐����܂Ƃ߂����C�u�����ł��B
-����ōŏI�I�ɕK�v�ɂȂ����֐����c���Ă���܂��B
+# KNUTIL SCENE MANAGER
+"KNUTIL"は自分が作成したゲームで、使用頻度の高い関数をまとめたライブラリです。
+制作で最終的に必要になった関数を残してあります。
 
-���̃J�[�g�ł̓V�[���@�\�̓���ɂ��ăA�j���[�V�����Ŏ����Ă��܂��B
+このカートではシーン機能の動作についてアニメーションで示しています。
 
-#�V�[���̗��p
-##[ MKSCENES ]�V�[�����쐬����
+# シーンの利用
+## [ MKSCENES ] シーンを作成する
 SCENES, INDEXES = MKSCENES( { UPD, DRW, KEY } )
-SCENES: �������ꂽ�V�[�����i�[����Ă��܂��B
-INDEXES: �����������ɃV�[�������s���邽�߂ɕK�v�ł��B
+SCENES: 生成されたシーンが格納されています。
+INDEXES: 生成した順にシーンを実行するために必要です。
 
-##[ CMDSCENES ]�V�[����ORDER����͂���
+## [ CMDSCENES ] シーンにORDERを入力する
 CMDSCENES([[
 [SCENE NAME] [COMMAND] [FUNCTION] [DURATION FRAME]
 [SCENE NAME] [COMMAND] [FUNCTION] [DURATION FRAME]
 ...
 ]])
-[SCENE NAME] MKSCENES�Ő����������O���w�肵�܂��B
-[COMMAND]���L��ORDER COMMANDS���w�肵�܂��B
-[FUNCTION] �O���[�o���֐��̖��O���w�肵�܂��B
-[DURATION FRAME] ��������t���[�������w�肵�܂��B0�Ŏw�肷��Ǝ����I�ɏI�����܂���B
+[SCENE NAME] MKSCENESで生成した名前を指定します。
+[COMMAND]下記のORDER COMMANDSを指定します。
+[FUNCTION] グローバル関数の名前を指定します。
+[DURATION FRAME] 持続するフレーム数を指定します。0で指定すると自動的に終了しません。
 
 
 ### ORDER COMMANDS
-ST: SCENE�ɃX�^�b�N���Ă���I�[�_�[��S�č폜���A�V�����I�[�_�[���Z�b�g����(SET)
+- ST: SCENEにスタックしているオーダーを全て削除し、新しいオーダーをセットする(SET)
 UPD ST MANAGE 0
---�V�[���uUPD�v���N���[���ɂ��āA�uFUNCTION MANAGE�v��ǉ����܂��B
+-- シーン「UPD」をクリーンにして、「FUNCTION MANAGE」を追加します。
 
-PS: SCENE�ɃI�[�_�[��ǉ�����(PUSH)
+- PS: SCENEにオーダーを追加する(PUSH)
 KEY PS KEYCHECK 0
---�V�[���uKEY�v�ɁuFUNCTION KEYCHECK�v��擪�ɒǉ����܂��B
+-- シーン「KEY」に「FUNCTION KEYCHECK」を先頭に追加します。
 
-US: SCENE�̍ŏ��ɃI�[�_�[�����荞�݂�����(UNSHIFT)
+- US: SCENEの最初にオーダーを割り込みさせる(UNSHIFT)
 DRW US DRAWRECT 200
 DRW US NIL 100
 DRW US DRAWCIRC 200
---�uDRW�v��DRAWCIRC, NIL DRAWRECT�̏��Ŏ��s����܂�
+--「DRW」はDRAWCIRC, NIL DRAWRECTの順で実行されます
 
-RM: �I�[�_�[����폜����
+- RM: オーダーを一つ削除する
 DRW RM
---�V�[���uDRW�v�̐擪�̃I�[�_�[���폜���܂��B
+-- シーン「DRW」の先頭のオーダーを削除します。
 
 DRW RM DRAWRECT
---�V�[���uDRW�v��DRAWRECT�I�[�_�[��擪����D�悵�č폜���܂��B
+-- シーン「DRW」のDRAWRECTオーダーを先頭から優先して削除します。
 
-CL: �V�[���ɃX�^�b�N���Ă���I�[�_�[�����ׂč폜����
+- CL: シーンにスタックしているオーダーをすべて削除する
 KEY CL
 
-FI: �V�[���̒�����I�[�_�[���������Ď擾����
+- FI: シーンの中からオーダーを検索して取得する
 DRW FI DRAWRECT
 
-##�֐����I�[�_�[�Ɏw�肷��
+## 関数をオーダーに指定する
 ```
 FUNCTION KEYCHECK( ORDER )
 	PRINT('PROCESSIONG ORDER')
 END
 ```
 
-##�e�V�[�������s����
+## 各シーンを実行する
 
-##ORDER�̃v���p�e�B
-###�v���p�e�B�FFST / LST
-ORDER.FST:�ŏ��̎��s��
-ORDER.LST:�Ō�̎��s��
+## ORDERのプロパティ
+### プロパティ：FST / LST
+ORDER.FST:最初の実行時
+ORDER.LST:最後の実行時
 
-###�v���p�e�B�FCNT / DUR
-ORDER.CNT:���ݑ����Ă���ORDER�̎��s�J�E���g
-ORDER.DUR:���ݑ����Ă���ORDER�̏I���\��̃J�E���g
+### プロパティ：CNT / DUR
+ORDER.CNT:現在走っているORDERの実行カウント
+ORDER.DUR:現在走っているORDERの終了予定のカウント
 
-###�v���p�e�B�FPRM
-CMDSCENES�̂Q�Ԗڂ̈����Ŏw�肵���l�������Ă��܂��B
+### プロパティ：PRM
+CMDSCENESの２番目の引数で指定した値が入っています。
 
-###RATE
-���W�ȂǂŁA�J�n����I�����w�肷��Ƃ��Ɏg���܂��B
+### RATE
+座標などで、開始から終了を指定するときに使います。
 `ORDER.rate('[start] [end]', duration, count )`
-duration��count�̓f�t�H���g�̏ꍇ�ACMDSCENES�Ŏw�肵�����̂��g���܂��B
+durationとcountはデフォルトの場合、CMDSCENESで指定したものが使われます。
 
-###�I�[�_�[�̋����I��
-`return 1`�����邩�A`ORDER.rm = 1`������B
+### オーダーの強制終了
+`return 1`をするか、`ORDER.rm = 1`をする。
 
-���̃��C�u�����̒��Ŏ������ɓ��e�������̂�����܂��B
+このライブラリの中で私が既に投稿したものがあります。
 HTBL
 VDMP
 
-����������Ă��Ȃ��֐��i�ʂ̋@��ɓ��e���܂��j
+説明がされていない関数（別の機会に投稿します）
 TONORM
 TOHEX
 TTOH
