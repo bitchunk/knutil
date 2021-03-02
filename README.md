@@ -5,24 +5,24 @@
 このカートではシーン機能の動作についてアニメーションで示しています。
 
 # シーンの利用
-## [ MKSCENES ] シーンを作成する
+## [ MKSCENES ] : シーンを作成する
 ```
 SCENES, INDEXES = MKSCENES( { 'UPD', 'DRW', 'KEY' } )
 ```
 SCENES: 生成されたシーンが格納されています。
 INDEXES: 生成した順にシーンを実行するために必要です。
 
-## [ CMDSCENES ] シーンにORDERを入力する
+## [ CMDSCENES ] : シーンにORDERを入力する
 ```
 CMDSCENES([[
-[SCENE NAME] [COMMAND] [FUNCTION] [DURATION FRAME]
-[SCENE NAME] [COMMAND] [FUNCTION] [DURATION FRAME]
+[SCENE NAME] [COMMAND] [FUNCTION NAME] [DURATION FRAME]
+[SCENE NAME] [COMMAND] [FUNCTION NAME] [DURATION FRAME]
 ...
 ]])
 ```
-- [SCENE NAME] : MKSCENESで生成した名前を指定します。
-- [COMMAND] :下記のORDER COMMANDSを指定します。
-- [FUNCTION] : グローバル関数の名前を指定します。
+- [SCENE NAME]     : MKSCENESで生成した名前を指定します。
+- [COMMAND]        :下記のORDER COMMANDSを指定します。
+- [FUNCTION NAME]  : グローバル関数の名前を指定します。
 - [DURATION FRAME] : 持続するフレーム数を指定します。0で指定すると自動的に終了しません。
 
 
@@ -76,15 +76,35 @@ END
 ```
 
 ## 各シーンを実行する
+```
+# _UPDATE()、_DRAW()関数の中で
+FOR V IN ALL(INDEX)
+	SCENES[V].TRA()
+END
+```
+
+## ORDER関数
+```
+FUNCTION [FUNCTION NAME] ( ORDER )
+	CLS()
+	IF ORDER.FST THEN
+		STOP'IT'S FIRST!'
+	END
+	IF ORDER.LST THEN
+		STOP'IT'S LAST!'
+	END
+	PRINT('COUNT: '..ORDER.CNT..'/'..ORDER.DUR)
+END
+```
 
 ## ORDERのプロパティ
 ### プロパティ：FST / LST
-ORDER.FST:最初の実行時
-ORDER.LST:最後の実行時
+ORDER.FST : 最初の実行時
+ORDER.LST : 最後の実行時
 
 ### プロパティ：CNT / DUR
-ORDER.CNT:現在走っているORDERの実行カウント
-ORDER.DUR:現在走っているORDERの終了予定のカウント
+ORDER.CNT : 現在走っているORDERの実行カウント
+ORDER.DUR : 現在走っているORDERの終了予定のカウント
 
 ### プロパティ：PRM
 CMDSCENESの２番目の引数で指定した値が入っています。
