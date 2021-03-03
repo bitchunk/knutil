@@ -18,8 +18,8 @@
 ```
 SCENES, INDEXES = MKSCENES( { 'UPD', 'DRW', 'KEY' } )
 ```
-SCENES: 生成されたシーンが格納されています。
-INDEXES: 生成した順にシーンを実行するために必要です。
+- SCENES: 生成されたシーンが格納されています。
+- INDEXES: 生成した順にシーンを実行するために必要です。
 
 ### シーンにORDERを入力する ( CMDSCENES )
 ```
@@ -124,12 +124,12 @@ END
 
 ## ORDERのプロパティ
 ### プロパティ：FST / LST
-ORDER.FST : 最初の実行時
-ORDER.LST : 最後の実行時
+- ORDER.FST : 最初の実行時
+- ORDER.LST : 最後の実行時
 
 ### プロパティ：CNT / DUR
-ORDER.CNT : 現在走っているORDERの実行カウント
-ORDER.DUR : 現在走っているORDERの終了予定のカウント
+- ORDER.CNT : 現在走っているORDERの実行カウント
+- ORDER.DUR : 現在走っているORDERの終了予定のカウント
 
 ### プロパティ：PRM
 CMDSCENESの２番目の引数で指定した値が入っています。
