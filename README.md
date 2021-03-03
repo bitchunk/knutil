@@ -7,11 +7,11 @@
 
 ![knutil_2](https://user-images.githubusercontent.com/8139723/109604067-3b7f2100-7b66-11eb-92ee-94b1b890f337.gif)
 
- **SCENE MANAGER**は連続した文字列の命令によって、少ないトークンで関数の呼び出す順番の制御、入れ替えをします。
-生成したSCENEはグローバル関数をORDERとして登録することができます。
-登録されたORDERはSCENEによって一つ取り出され、指定した長さだけ処理を繰り返します。
-処理が終わると、次のORDERの処理を繰り返します。
-これにより、演出の実装を容易にすることが期待できます。
+ **SCENE MANAGER**は連続した文字列の命令によって、少ないトークンで関数の呼び出す順番の制御、入れ替えをします。  
+生成したSCENEはグローバル関数をORDERとして登録することができます。  
+登録されたORDERはSCENEによって一つ取り出され、指定した長さだけ処理を繰り返します。  
+処理が終わると、次のORDERの処理を繰り返します。  
+これにより、演出の実装を容易にすることが期待できます。  
 
 ## シーンの利用
 ### シーンを作成する ( MKSCENES )
@@ -38,46 +38,62 @@ CMDSCENES([[
 ## ORDER COMMANDS
 - **ST: SCENEにスタックしているオーダーを全て削除し、新しいオーダーをセットする(SET)**
 ```
+CMDSCENES[[
 UPD ST MANAGE 0
+]]
 ```
 シーン「UPD」をクリーンにして、「FUNCTION MANAGE」を追加します。
 
 ### PS: SCENEにオーダーを追加する(PUSH)
 ```
+CMDSCENES[[
 KEY PS KEYCHECK 0
+]]
 ```
 シーン「KEY」に「FUNCTION KEYCHECK」を先頭に追加します。
 
 ### US: SCENEの最初にオーダーを割り込みさせる(UNSHIFT)
 ```
+CMDSCENES[[
 DRW US DRAWRECT 200
 DRW US NIL 100
 DRW US DRAWCIRC 200
+]]
 ```
 シーン「DRW」はDRAWCIRC, NIL DRAWRECTの順で実行されます
 
 ### RM: オーダーを一つ削除する
 ```
+CMDSCENES[[
 DRW RM
+]]
 ```
 シーン「DRW」の先頭のオーダーを削除します。
 
 ```
+CMDSCENES[[
 DRW RM DRAWRECT
+]]
 ```
 シーン「DRW」のDRAWRECTオーダーを先頭から優先して削除します。
 
 ### CL: シーンにスタックしているオーダーをすべて削除する
 ```
+CMDSCENES[[
 KEY CL
+]]
 ```
+シーン「KEY」に登録されたオーダー全てが削除されます。
 
 ### FI: シーンの中からオーダーを検索して取得する
 ```
+RES = CMDSCENES[[
 DRW FI DRAWRECT
+]]
 ```
+この場合、返り値RESはテーブルであり、「DRAWRECT」のオーダーは最初に入っています。
 
-## 関数をオーダーに指定する
+## オーダーのための関数を作る
 ```
 FUNCTION KEYCHECK( ORDER )
 	PRINT('PROCESSIONG ORDER')
