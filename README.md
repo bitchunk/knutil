@@ -13,13 +13,13 @@
 処理が終わると、次のORDERの処理を繰り返します。  
 これにより、演出の実装を容易にすることが期待できます。  
 
-## シーンの利用
-### シーンを作成する ( MKSCENES )
+## SCENEの利用
+### SCENEを作成する ( MKSCENES )
 ```
 SCENES, INDEXES = MKSCENES( { 'UPD', 'DRW', 'KEY' } )
 ```
-- SCENES: 生成されたシーンが格納されています。
-- INDEXES: 生成した順にシーンを実行するために必要です。
+SCENES: 生成されたシーンが格納されています。
+INDEXES: 生成した順にシーンを実行するために必要です。
 
 ### シーンにORDERを入力する ( CMDSCENES )
 ```
@@ -29,14 +29,14 @@ CMDSCENES([[
 ...
 ]])
 ```
-- [SCENE NAME]     : MKSCENESで生成した名前を指定します。
-- [COMMAND]        :下記のORDER COMMANDSを指定します。
+- [SCENE NAME]     　: MKSCENESで生成した名前を指定します。
+- [COMMAND]      　　  :下記のORDER COMMANDSを指定します。
 - [FUNCTION NAME]  : グローバル関数の名前を指定します。
 - [DURATION FRAME] : 持続するフレーム数を指定します。0で指定すると自動的に終了しません。
 
 
 ## ORDER COMMANDS
-- **ST: SCENEにスタックしているオーダーを全て削除し、新しいオーダーをセットする(SET)**
+### ST (SET): SCENEにスタックしているオーダーを全て削除し、新しいオーダーをセットする
 ```
 CMDSCENES[[
 UPD ST MANAGE 0
@@ -44,7 +44,7 @@ UPD ST MANAGE 0
 ```
 シーン「UPD」をクリーンにして、「FUNCTION MANAGE」を追加します。
 
-### PS: SCENEにオーダーを追加する(PUSH)
+### PS (PUSH): SCENEにオーダーを追加する(PUSH)
 ```
 CMDSCENES[[
 KEY PS KEYCHECK 0
@@ -52,7 +52,7 @@ KEY PS KEYCHECK 0
 ```
 シーン「KEY」に「FUNCTION KEYCHECK」を先頭に追加します。
 
-### US: SCENEの最初にオーダーを割り込みさせる(UNSHIFT)
+### US (UNSHIFT): SCENEの最初にオーダーを割り込みさせる
 ```
 CMDSCENES[[
 DRW US DRAWRECT 200
@@ -60,9 +60,9 @@ DRW US NIL 100
 DRW US DRAWCIRC 200
 ]]
 ```
-シーン「DRW」はDRAWCIRC, NIL DRAWRECTの順で実行されます
+シーン「DRW」はDRAWCIRC, NIL, DRAWRECTの順で実行されます
 
-### RM: オーダーを一つ削除する
+### RM (REMOVE): オーダーを一つ削除する
 ```
 CMDSCENES[[
 DRW RM
@@ -77,7 +77,7 @@ DRW RM DRAWRECT
 ```
 シーン「DRW」のDRAWRECTオーダーを先頭から優先して削除します。
 
-### CL: シーンにスタックしているオーダーをすべて削除する
+### CL (CLEAR): シーンにスタックしているオーダーをすべて削除する
 ```
 CMDSCENES[[
 KEY CL
@@ -85,7 +85,7 @@ KEY CL
 ```
 シーン「KEY」に登録されたオーダー全てが削除されます。
 
-### FI: シーンの中からオーダーを検索して取得する
+### FI (FIND): シーンの中からオーダーを検索して取得する
 ```
 RES = CMDSCENES[[
 DRW FI DRAWRECT
@@ -93,7 +93,7 @@ DRW FI DRAWRECT
 ```
 この場合、返り値RESはテーブルであり、「DRAWRECT」のオーダーは最初に入っています。
 
-## オーダーのための関数を作る
+## ORDERのための関数を作る
 ```
 FUNCTION KEYCHECK( ORDER )
 	PRINT('PROCESSIONG ORDER')
@@ -103,7 +103,7 @@ END
 ## 各シーンを実行する
 ```
 # _UPDATE()、_DRAW()関数の中で
-FOR V IN ALL(INDEX)
+FOR V IN ALL(INDEXES)
 	SCENES[V].TRA()
 END
 ```
@@ -113,10 +113,10 @@ END
 FUNCTION [FUNCTION NAME] ( ORDER )
 	CLS()
 	IF ORDER.FST THEN
-		STOP'IT'S FIRST!'
+		STOP"IT'S FIRST!"
 	END
 	IF ORDER.LST THEN
-		STOP'IT'S LAST!'
+		STOP"IT'S LAST!"
 	END
 	PRINT('COUNT: '..ORDER.CNT..'/'..ORDER.DUR)
 END
@@ -124,12 +124,12 @@ END
 
 ## ORDERのプロパティ
 ### プロパティ：FST / LST
-- ORDER.FST : 最初の実行時
-- ORDER.LST : 最後の実行時
+ORDER.FST : 最初の実行時にTRUE、それ以外はFALSE
+ORDER.LST : 最後の実行時にTRUE、それ以外はFALSE
 
 ### プロパティ：CNT / DUR
-- ORDER.CNT : 現在走っているORDERの実行カウント
-- ORDER.DUR : 現在走っているORDERの終了予定のカウント
+ORDER.CNT : 現在走っているORDERの実行カウント
+ORDER.DUR : 現在走っているORDERの終了予定のカウント
 
 ### プロパティ：PRM
 CMDSCENESの２番目の引数で指定した値が入っています。
@@ -144,6 +144,7 @@ durationとcountはデフォルトの場合、CMDSCENESで指定したものが�
 ### オーダーの強制終了
 `return 1`をするか、`ORDER.rm = 1`をする。
 
+## シーン以外の機能
 このライブラリの中で私が既に投稿したものがあります。
 - HTBL
 - VDMP
