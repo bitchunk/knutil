@@ -1,7 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
-version 30
+version 35
 __lua__
---knutil_0.4
+--knutil_0.5
 --@shiftalow
 function tonorm(s)
 if tonum(s) then return tonum(s)
@@ -13,7 +13,7 @@ return s
 end
 
 function tohex(p,n)
-p=sub(tostr(tonum(p),16),3,6)
+p=sub(tostr(tonum(p),1),3,6)
 while sub(p,1,1)=='0' do
 p=sub(p,2)
 end
@@ -29,95 +29,17 @@ return {lshr(band(v,0xff00),8),band(v,0xff)}
 end
 
 function replace(s,f,r)
-local a=''
-while #s>0 do
-local t=sub(s,1,#f)
-a=a..(t~=f and sub(s,1,1) or r or '')
-s=sub(s,t==f and 1+#f or 2)
+local a,i='',1
+while i<=#s do
+if sub(s,i,i+#f-1)~=f then
+a..=sub(s,i,i)
+i+=1
+else
+a..=r or ''
+i+=#f
+end
 end
 return a
-end
-
-function htbl(ht,ri)
-local t,c,k,rt,p={},0
-ri,ht=ri or 0,ri and ht or replace(ht,"\n")
-while ht~='' do
-p,ht=sub(ht,1,1),sub(ht,2)
-if p=='{' or p=='=' then
-rt,ht=htbl(ht,ri+1)
-if rt then
-if p=='=' then
-t[k]=rt[1]
-else
-if k then
-t[k]=rt
-else
-add(t,rt)
-end
-end
-end
-k=nil
-elseif p=='}' or p==';' then
-add(t,tonorm(k))
-k=nil
-return t,ht
-elseif p==' ' then
-add(t,tonorm(k))
-k=nil
-else
-k=(k or '')..p
-end
-end
-add(t,tonorm(k))
-return t
-end
-
-mkrs,hovk=htbl'x y w h ex ey r p'
-,htbl'{x y}{x ey}{ex y}{ex ey}'
-function rfmt(p)
-local x,y,w,h=unpack(ttable(p) or _split(p,' ',true))
-return comb(mkrs,{x,y,w,h,x+w-1,y+h-1,w/2,p})
-end
-
-function exrect(p)
-local o=rfmt(p)
-return cat(o,{
-cont=function(x,y)
-if y then
-return inrng(x,o.x,o.ex) and inrng(y,o.y,o.ey)
-else
-return o.cont(x.x,x.y) and o.cont(x.ex,x.ey)
-end
-end
-,hover=function(r,p)
-local h
-for i,v in pairs(hovk) do
-h=h or o.cont(r[v[1]],r[v[2]])
-end
-return h or p==nil and r.hover(o,true)
-end
-,ud=function(p,y,w,h)
-return cat(
-o,rfmt((tonum(p) or not p) and {p or o.x,y or o.y,w or o.w,h or o.h} or p
-))
-end
-,rs=function(col,f)
-local c=o.cam
-f=(f or rect)(o.x-c.x,o.y-c.y,o.ex-c.x,o.ey-c.y,col)
-return o
-end
-,rf=function(col)
-return o.rs(col,rectfill)
-end
-,cs=function(col,f)
-(f or circ)(o.x+o.r-o.cam.x,o.y+o.r-o.cam.y,o.w/2,col)
-return o
-end
-,cf=function(col)
-return o.cs(col,circfill)
-end
-,cam={x=0,y=0}
-})
 end
 
 function toc(v,p)
@@ -145,12 +67,11 @@ end
 
 _bc={}
 function htd(b,n)
-local d={}
-n=n or 2
-for i=1,#b,n do
-add(d,tonum('0x'..(sub(b,i,i+n-1))))
-end
-return d
+a={}
+tmap(split(b,n or 2),function(v)
+add(a,tonum('0x'..v))
+end)
+return a
 end
 
 function slice(r,f,t)
@@ -249,6 +170,95 @@ function bmch(b,m,l)
 b=band(b,m)
 return l and b~=0 or b==m
 end
+
+function htbl(ht,c)
+local t,k,rt={}
+ht,c=split(ht,'') or ht,c or 1
+while ht[c] do
+local p=ht[c]
+c+=1
+if p=='{' or p=='=' then
+rt,c=htbl(ht,c)
+if rt then
+if p=='=' then
+t[k]=rt[1]
+elseif k then
+t[k]=rt
+else
+add(t,rt)
+end
+end
+k=nil
+elseif p=='}' or p==';' then
+add(t,tonorm(k))
+k=nil
+return t,c
+elseif p==' ' then
+add(t,tonorm(k))
+k=nil
+elseif p~="\n" then
+k=(k or '')..p
+end
+end
+add(t,tonorm(k))
+return t
+end
+
+mkrs,hovk,_mnb=htbl'x y w h ex ey r p'
+,htbl'{x y}{x ey}{ex y}{ex ey}'
+,htbl'cont hover ud rs rf cs cf os of cam'
+function rfmt(p)
+local x,y,w,h=unpack(ttable(p) or _split(p,' ',true))
+return comb(mkrs,{x,y,w,h,x+w-1,y+h-1,w/2,p})
+end
+
+function exrect(p)
+local o=rfmt(p)
+return cat(o,comb(_mnb,{
+function(x,y)
+if y then
+return inrng(x,o.x,o.ex) and inrng(y,o.y,o.ey)
+else
+return o.cont(x.x,x.y) and o.cont(x.ex,x.ey)
+end
+end
+,function(r,p)
+local h
+for i,v in pairs(hovk) do
+h=h or o.cont(r[v[1]],r[v[2]])
+end
+return h or p==nil and r.hover(o,true)
+end
+,function(p,y,w,h)
+return cat(
+o,rfmt((tonum(p) or not p) and {p or o.x,y or o.y,w or o.w,h or o.h} or p
+))
+end
+,function(col,f)
+local c=o.cam
+f=(f or rect)(o.x-c.x,o.y-c.y,o.ex-c.x,o.ey-c.y,col)
+return o
+end
+,function(col)
+return o.rs(col,rectfill)
+end
+,function(col,f)
+(f or circ)(o.x+o.r-o.cam.x,o.y+o.r-o.cam.y,o.w/2,col)
+return o
+end
+,function(col)
+return o.cs(col,circfill)
+end
+,function(col)
+return o.rs(col,oval)
+end
+,function(col)
+return o.rs(col,ovalfill)
+end
+,{x=0,y=0}
+}))
+end
+
 -->8
 --scenes
 _sck=split'nm dur prm rate cnt rm'
@@ -271,49 +281,48 @@ _scal={}
 function mkscenes(keys)
 local s=add(_scal,{})
 return s,tmap(ttable(keys) or {keys},function(v)
-
 local o={}
-s[v]=cat(cat(o,{
-ps=function(fn,d,p)
+s[v]=cat(o,comb(split'ps st rm cl fi cu sh us tra ords nm',{
+function(fn,d,p)
 return add(o.ords,scorder(fn,d,p))
 end
-,st=function(fn,d,p)
+,function(fn,d,p)
 o.cl()
 return o.ps(fn,d,p)
 end
-,rm=function(s)
+,function(s)
 s=s and o.fi(s) or not s and o.cu()
 if s then
 del(o.ords,s).rm=true
 end
 return s
 end
-,cl=function()
+,function()
 local s={}
 while o.ords[1] do
 add(s,o.rm())
 end
 return s
 end
-,fi=function(key)
+,function(key)
 for v in all(o.ords) do
 if v.nm==key or key==v then 
 return v end
 end
 end
-,cu=function(n)
+,function(n)
 return o.ords[n or 1]
 end
-,sh=function()
+,function()
 local v=o.cu()
 return del(o.ords,v)
 end
-,us=function(s,d,p)
+,function(s,d,p)
 p=scorder(s,d,p)
 o.ords=cat({p},o.ords)
 return p
 end
-,tra=function(n)
+,function(n)
 local c=o.cu(n)
 if c then
 local n=c.cnt+1
@@ -323,8 +332,8 @@ o.rm(c)
 end
 end
 end
-})
-,{ords={},nm=v})
+,{},v
+}))
 end)
 end
 
@@ -373,6 +382,23 @@ tmap(vdmpl,function(v)
 ?v 
 end)
 stop()
+end
+end
+
+--dbg
+_dbgv={}
+function dbg(...)
+if ... then
+add(_dbgv,{...})
+else
+tmap(_dbgv,function(t,y)
+local p=''
+tmap(ttable(t) or {t},function(v,x)
+p..=tostr(v)..' '
+end)
+?p,0,122+(y-#_dbgv)*6,7
+end)
+_dbgv={}
 end
 end
 
@@ -563,6 +589,41 @@ function _draw()
 	end)
 	outline('knutil scene orders diagram', '8 8 1 12')
 end
+-->8
+--htbl examples
+--indexed
+local _itbl=htbl[[50 val test]]
+
+--keybalues
+local _ktbl=htbl[[count=30;a=b;]]
+
+--multidimensional table
+local _mtbl=htbl[[
+player{
+ name=fighter;level=15;
+ inventory{
+  sword shild makibishi
+ }
+ skill{
+  {name=parry;class=beginner;}
+  {name=parry;class=beginner;}
+ }
+ lean_magic=false;
+ own_home=true;
+}
+]]
+--vdmp(_mtbl)
+
+--initialize global variables
+cat(_ENV,htbl[[
+tokencost{
+ knutil{1092 essential-library}
+ scenes{382 scene-manager}
+ vdmp{144 table-value-dump}
+ dbg{62 instant-print-values}
+}
+]])
+--vdmp(tokencost)
 __gfx__
 00991000000991000000000000000000099910000009991000000991100000007771000771000000991191100111191000011910000000000000000004444000
 09999100009999109910441004410991999991000099999100009991991000007777107777100000999999100999991000999910000044440444444047777440
