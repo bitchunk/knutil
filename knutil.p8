@@ -82,7 +82,9 @@ end
 return v
 end
 
-function cat(f,s)
+function cat(f,...)
+--for i,s in pairs({...}) do
+foreach({...},function(s)
 for k,v in pairs(s) do
 if tonum(k) then
 add(f,v)
@@ -90,6 +92,7 @@ else
 f[k]=v
 end
 end
+end)
 return f
 end
 
@@ -206,7 +209,7 @@ end
 
 mkrs,hovk,_mnb=htbl'x y w h ex ey r p'
 ,htbl'{x y}{x ey}{ex y}{ex ey}'
-,htbl'cont hover ud rs rf cs cf os of cam'
+,htbl'con hov ud rs rf cs cf os of cam'
 function rfmt(p)
 local x,y,w,h=unpack(ttable(p) or _split(p,' ',true))
 return comb(mkrs,{x,y,w,h,x+w-1,y+h-1,w/2,p})
@@ -350,11 +353,13 @@ end)
 return res
 end
 -->8
---vdmp
-vdmpl={}
-function vdmp(v,x)
-local tstr=htbl([[
-number=#;string=$;boolean=%;function=*;nil=!;
+--dmp
+_dmpl={}
+function dmp(v,x)
+local tstr=comb(split[[
+number string boolean function nil
+]],split[[
+# $ % * !;
 ]])
 tstr.table='{'
 local p,s=true,''
@@ -365,20 +370,20 @@ end
 v=ttable(v) and v or {v}
 for i,str in pairs(v) do
 	if ttable(str) then
-	 add(vdmpl,s..i..tstr[type(str)])
-		vdmp(str,x+1)
-	 add(vdmpl,s..'}')
+	 add(_dmpl,s..i..tstr[type(str)])
+		dmp(str,x+1)
+	 add(_dmpl,s..'}')
  p=true
 	else
 		if p then
-		add(vdmpl,s)
+		add(_dmpl,s)
 		end
- vdmpl[#vdmpl]=vdmpl[#vdmpl]..tstr[type(str)]..':'..tostr(str)..' '
+ _dmpl[#_dmpl]=_dmpl[#_dmpl]..tstr[type(str)]..i..':'..tostr(str)..' '
 	p=false
 	end
 end
 if x==0 then
-tmap(vdmpl,function(v)
+tmap(_dmpl,function(v)
 ?v 
 end)
 stop()
@@ -623,7 +628,7 @@ tokencost{
  dbg{62 instant-print-values}
 }
 ]])
---vdmp(tokencost)
+dmp(tokencost)
 __gfx__
 00991000000991000000000000000000099910000009991000000991100000007771000771000000991191100111191000011910000000000000000004444000
 09999100009999109910441004410991999991000099999100009991991000007777107777100000999999100999991000999910000044440444444047777440
