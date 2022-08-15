@@ -620,8 +620,8 @@ player{
 --initialize global variables
 cat(_ENV,htbl[[
 tokencost{
- knutil{1090 essential-library}
- scenes{372 scene-manager}
+ knutil{1081 essential-library}
+ scenes{376 scene-manager}
  dmp{137 table-value-dump}
  dbg{61 instant-print-values}
 }
@@ -632,7 +632,7 @@ tokencost{
 update history
 v0.7
 	sceneorder:"rate" func countermeasures against overflow of digits
-	code update saved: 
+	code update saved token: 
 						htbl: 7 tokens
 						tonorm: 9 tokens
 
