@@ -351,10 +351,11 @@ tmap(ttable(v) or {v},function(str,i)
 		add(_dmpl,s)
 		end
 	 _dmpl[#_dmpl],v=join('',_dmpl[#_dmpl],
+	 tonum(i) and '' or i,
 	 comb(split[[
 number string boolean function nil
-]],split"\f7# \fc$ \fe% \fb* \f2!"
-)[type(str)],tonum(i) and '' or i,':',tostr(str),' ')
+]],split"#:\ff $:\fc %:\fe *:\fb !:\f2"
+)[type(str)],tostr(str),' \f6')
 	end
 end)
 if s=='\f6' then
@@ -600,13 +601,26 @@ player{
 --initialize global variables
 cat(_ENV,htbl[[
 tokencost{
- knutil{1058 essential-library}
- scenes{357 scene-manager}
- dmp{109 table-value-dump}
- dbg{61 instant-print-values}
+--tokencost--
+ knutil{
+  token=158;
+  essential-library
+ }
+ scenes{
+  token=357;
+  scene-manager
+ }
+ dmp{
+  token=109;
+  dump-table-values
+ }
+ dbg{
+  token=61;
+  value-instant-print
+ }
 }
 ]])
---dmp(tokencost)
+dmp(tokencost)
 
 -->8
 --[[
