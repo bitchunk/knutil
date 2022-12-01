@@ -19,7 +19,7 @@ __lua__
 
 function bunpack(b,s,w,...)
 if w then
-return flr(0x.ffff<<w&b>>>s),bunpack(b,s-w,...)
+return flr(0x.ffff<<w&b>>>s),bunpack(b,s-(... or 0),...)
 end
 end
 
