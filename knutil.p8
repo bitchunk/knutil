@@ -1,9 +1,9 @@
 pico-8 cartridge // http://www.pico-8.com
-version 37
+version 41
 __lua__
---knutil_0.11
+--knutil_0.12
 --@shiftalow / bitchunk
-version='v0.11'
+version='v0.12'
 function tonorm(s)
 if s=='true' then return true
 elseif s=='false' then return false
@@ -101,7 +101,7 @@ return t
 end
 
 function rceach(p,f)
-p=rfmt(p)
+p=_rfmt(p)
 for y=p.y,p.ey do
 for x=p.x,p.ex do
 f(x,y,p)
@@ -155,11 +155,6 @@ function amid(c,a)
 return mid(c,a,-a)
 end
 
-function bmch(b,m,l)
-b=band(b,m)
-return l and b~=0 or b==m
-end
-
 function htbl(ht,c)
 local t,k,rt={}
 ht,c=split(ht,'') or ht,c or 1
@@ -192,31 +187,31 @@ end
 mkrs,hovk,_mnb=htbl'x y w h ex ey r p'
 ,htbl'{x y}{x ey}{ex y}{ex ey}'
 ,htbl'con hov ud rs rf cs cf os of cam'
-function rfmt(p)
+function _rfmt(p)
 local x,y,w,h=unpack(ttable(p) or _split(p,' ',true))
 return comb(mkrs,{x,y,w,h,x+w-1,y+h-1,w/2,p})
 end
 
 function exrect(p)
-local o=rfmt(p)
+local o=_rfmt(p)
 return cat(o,comb(_mnb,{
-function(x,y)
+function(p,y)
 if y then
-return inrng(x,o.x,o.ex) and inrng(y,o.y,o.ey)
+return inrng(p,o.x,o.ex) and inrng(y,o.y,o.ey)
 else
-return o.con(x.x,x.y) and o.con(x.ex,x.ey)
+return o.con(p.x,p.y) and o.con(p.ex,p.ey)
 end
 end
-,function(r,p)
+,function(r,i)
 local h
 for i,v in pairs(hovk) do
 h=h or o.con(r[v[1]],r[v[2]])
 end
-return h or p==nil and r.hov(o,true)
+return h or i==nil and r.hov(o,true)
 end
 ,function(p,y,w,h)
 return cat(
-o,rfmt((tonum(p) or not p) and {p or o.x,y or o.y,w or o.w,h or o.h} or p
+o,_rfmt((tonum(p) or not p) and {p or o.x,y or o.y,w or o.w,h or o.h} or p
 ))
 end
 ,function(col,f)
@@ -252,7 +247,7 @@ return cat(o,comb(split'rate cnt rm nm dur prm',{
 function(d,r,c)
 local f,t=unpack(ttable(d) or split(d))
 r=r or o.dur
-return min(c or o.cnt,r)/256*(t-f)/r*256+f
+return min(c or o.cnt,r)/max(r,1)*(t-f)+f
 end
 ,0,false
 ,...
@@ -315,11 +310,11 @@ end
 end
 ,{},v
 }))
-return _scal[v]
+return o
 end)
 end
 
-function cmdscenes(b,p)
+function cmdscenes(b,p,...)
 local res={}
 tmap(split(b,"\n",' '),function(v,i)
 local s,m,f,d=unpack(v)
@@ -327,62 +322,99 @@ if _scal[s] then
 add(res,_scal[s][m](f,tonum(d),p or {}))
 end
 end)
-return res
+return res, ... and cmdscenes(...)
+end
+
+function transition(v)
+ v.tra()
 end
 -->8
 --dmp
-function dmp(v,s)
-if not s then
-_dmpl,s={},'\f6'
-end
 
+--function dmp(v,q,s)
+--if not s then
+--_dmpl,s={},'\f6'
+--end
+--
+--tmap(ttable(v) or {v},function(str,i)
+--	if ttable(str) then
+--	 add(_dmpl,s..i..'{')
+--		dmp(str,s..' ')
+--	 v=add(_dmpl,s..'\f6}')
+--	else
+--		if v then
+--		add(_dmpl,s)
+--		end
+--	 _dmpl[#_dmpl],v=join('',_dmpl[#_dmpl],
+--	 tonum(i) and '' or i,
+--	 comb(split[[
+--number string boolean function nil
+--]],split"#:\ff $:\fc %:\fe *:\fb !:\f2"
+--)[type(str)],tostr(str),' \f6')
+--	end
+--end)
+--if s=='\f6' then
+--cls()
+--foreach(_dmpl,print)
+--stop()
+--end
+--end
+
+function dmp(v,q,s)
+local p
+	if not s then
+		q,s,_dmpx,_dmpy="\f6","",0,0
+	end
 tmap(ttable(v) or {v},function(str,i)
 	if ttable(str) then
-	 add(_dmpl,s..i..'{')
-		dmp(str,s..' ')
-	 v=add(_dmpl,s..'\f6}')
+		q,p=dmp(str,q.."\n"..s..i.."{",s.." ").."\n"..s.."\f6}"
 	else
-		if v then
-		add(_dmpl,s)
+		if not p then
+		q..="\n"..s
 		end
-	 _dmpl[#_dmpl],v=join('',_dmpl[#_dmpl],
-	 tonum(i) and '' or i,
+	 q,p=join('',q,i,
 	 comb(split[[
 number string boolean function nil
-]],split"#:\ff $:\fc %:\fe *:\fb !:\f2"
-)[type(str)],tostr(str),' \f6')
+]],split"\ff#\f6:\ff \fc$\f6:\fc \fe%\f6:\fe \fb*\f6:\fb \f2!\f6:\f2"
+)[type(str)],tostr(str),' \f6'),true
 	end
 end)
-if s=='\f6' then
-cls()
-foreach(_dmpl,print)
-stop()
+	::dmp::
+	if s=='' and not btnp(6) then
+		cls()
+		?q,_dmpx*4,_dmpy*6
+		_dmpx+=sgn(btn(0))-sgn(btn(1))
+		_dmpy+=sgn(btn(2))-sgn(btn(3))
+		flip()
+		goto dmp
+	end
+	return q
 end
+
+_sgn,sgn=sgn,function(v)
+return v==false and 0 or _sgn(v)
 end
 
 --dbg
-_dbgv={}
 function dbg(...)
 if ... then
 add(_dbgv,{...})
 else
 tmap(_dbgv,function(t,y)
-local p=''
-tmap(ttable(t) or {t},function(v,x)
-p..=tostr(v)..' '
-end)
-?p,0,122+(y-#_dbgv)*6,7
+?join(' ',unpack(ttable(t) or {t})),0,122+(y-#_dbgv)*6,7
 end)
 _dbgv={}
 end
 end
+dbg()
+
 
 -->8
 --init vars
 order_cnt = 0
 item_index = 0
 items = split'push unshift clear'
-scenes = mkscenes(split'items stack transition push shift unshift remove')
+scenes = mkscenes(split'library items stack transition push shift unshift remove')
 cls()
 cmdscenes([[
 stack st stacked 0
@@ -420,9 +452,21 @@ transition cl
  if btnp(⬇️) then
  	item_index += 1
  end
+ if btnp(➡️) then
+ 	cmdscenes[[
+items cl
+stack cl
+library st library_draw 0
+]]
+ end
+end
+
+function library_draw( o )
+cls()
 end
 
 function draw_items( o )
+	outline('knutil scene orders diagram', '8 8 1 12')
 	outline([[/order\
 \ cmd /
 ]],'0 20 4 9')
@@ -563,10 +607,10 @@ end
 
 function _draw()
 	cls()
-	tmap(scenes,function(v)
-		v.tra()
-	end)
-	outline('knutil scene orders diagram', '8 8 1 12')
+	foreach(scenes,transition)
+--	tmap(scenes,function(v)
+--		v.tra()
+--	end)
 	dbg(version)
 	dbg()
 end
@@ -626,6 +670,24 @@ end)
 -->8
 --[[
 update history
+**v0.12**
+-bmch: unlisted
+-exrect: fix variable and function names
+-scene:
+--rate: adjustment of decimal point overflow countermeasures
+--cmdscenes: continuous call handling
+--added functions for iterators
+-dbg: simplification by join
+-join for long data
+--function join(d,s,...)
+--local a={...}
+--while a[1] do
+--s..=d..deli(a,1)
+--end
+--return s or ''
+--end
+
+
 **v0.11**
 -htd: fixed table values to local variables
 -bpack: specification change from ttoh()

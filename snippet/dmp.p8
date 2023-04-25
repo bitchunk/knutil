@@ -1,9 +1,84 @@
 pico-8 cartridge // http://www.pico-8.com
-version 35
+version 41
 __lua__
 --dmp [dmp() dumping table values]
---v0.3
+--v0.4
 --@shiftalow / bitchunk
+--function dmp(v,x)
+--function dmp(v,s)
+function dmp(v,q,s)
+	local tstr={
+		number="\ff#\f6:\ff"
+		,string="\fc$\f6:\fc"
+		,boolean="\fe%\f6:\fe"
+		,["function"]="\fb*\f6:\fb"
+		,["nil"]="\f2!\f6:\f2"
+	}
+	local p
+	if not s then
+	 q,s,_dmpx,_dmpy="\f6","",0,0
+	end
+	v=type(v)=="table" and v or {v}
+	for i,str in pairs(v) do
+		local t=type(str)
+		if t=="table" then
+			q,p=dmp(str,q.."\n"..s..i.."{",s.." ").."\n"..s.."\f6}"
+		else
+			if not p then
+				q..="\n"..s
+			end
+		 q..=(tonum(i) and "" or i)..tstr[t]..tostr(str).."\f6 "
+			p=true
+		end
+	end
+	::dmp::
+	if s=="" and not btnp(6) then
+		cls()
+		?q,_dmpx*4,_dmpy*6
+		_dmpx+=sgn(btn(0))-sgn(btn(1))
+		_dmpy+=sgn(btn(2))-sgn(btn(3))
+		flip()
+		goto dmp
+	end
+	return q
+end
+
+_sgn,sgn=sgn,function(v)
+return v==false and 0 or _sgn(v)
+end
+
+others={}
+others["nil"]=nil
+others["boolean"]={true,false}
+others["function"]=function()end
+dmp({
+[[
+
+-----------------------------
+- dumping table values! -
+-----------------------------]]
+,number={1,2,3}
+,str="string"
+,table={{},{"table"}}
+,other=others
+})
+
+-->8
+--[[
+release note
+v0.1
+	- first release(vdmp)
+
+v0.2
+ - name change: [ vdmp->dmp ]
+ - remove value for print position.
+ - add the type identifier
+    before the table key.
+
+v0.3
+ - fixed comment
+]]--
+-->8
 _dmpl={}
 function dmp(v,x)
 	local tstr={
@@ -43,38 +118,6 @@ end)
 stop()
 end
 end
-
-others={}
-others["nil"]=nil
-others["boolean"]={true,false}
-others["function"]=function()end
-dmp({
-[[
-
------------------------------
--	dumping table values!	-
------------------------------]]
-,number={1,2,3}
-,str="string"
-,table={{},{'table'}}
-,other=others
-})
-
--->8
---[[
-release note
-v0.1
-	- first release(vdmp)
-
-v0.2
- - name change: [ vdmp->dmp ]
- - remove value for print position.
- - add the type identifier
-    before the table key.
-
-v0.3
- - fixed comment
-]]--
 __label__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
