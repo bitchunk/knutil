@@ -31,7 +31,7 @@ return flr(0x.ffff<<w&b>>>s),bunpack(b,s-(... or 0),...)
 end
 end
 
-function replace(s,f,r)
+function replace(s,f,r,...)
 local a,i='',1
 while i<=#s do
 if sub(s,i,i+#f-1)~=f then
@@ -42,7 +42,7 @@ a..=r or ''
 i+=#f
 end
 end
-return a
+return ... and replace(a,...) or a
 end
 
 function toc(v,p)
@@ -184,12 +184,12 @@ add(t,tonorm(k))
 return t
 end
 
-mkrs,hovk,_mnb=htbl'x y w h ex ey r p'
+_mkrs,_hovk,_mnb=htbl'x y w h ex ey r p'
 ,htbl'{x y}{x ey}{ex y}{ex ey}'
 ,htbl'con hov ud rs rf cs cf os of cam'
 function _rfmt(p)
 local x,y,w,h=unpack(ttable(p) or _split(p,' ',true))
-return comb(mkrs,{x,y,w,h,x+w-1,y+h-1,w/2,p})
+return comb(_mkrs,{x,y,w,h,x+w-1,y+h-1,w/2,p})
 end
 
 function exrect(p)
@@ -204,7 +204,7 @@ end
 end
 ,function(r,i)
 local h
-for i,v in pairs(hovk) do
+for i,v in pairs(_hovk) do
 h=h or o.con(r[v[1]],r[v[2]])
 end
 return h or i==nil and r.hov(o,true)
@@ -330,69 +330,33 @@ function transition(v)
 end
 -->8
 --dmp
-
---function dmp(v,q,s)
---if not s then
---_dmpl,s={},'\f6'
---end
---
---tmap(ttable(v) or {v},function(str,i)
---	if ttable(str) then
---	 add(_dmpl,s..i..'{')
---		dmp(str,s..' ')
---	 v=add(_dmpl,s..'\f6}')
---	else
---		if v then
---		add(_dmpl,s)
---		end
---	 _dmpl[#_dmpl],v=join('',_dmpl[#_dmpl],
---	 tonum(i) and '' or i,
---	 comb(split[[
---number string boolean function nil
---]],split"#:\ff $:\fc %:\fe *:\fb !:\f2"
---)[type(str)],tostr(str),' \f6')
---	end
---end)
---if s=='\f6' then
---cls()
---foreach(_dmpl,print)
---stop()
---end
---end
-
 function dmp(v,q,s)
-local p
 	if not s then
-		q,s,_dmpx,_dmpy="\f6","",0,0
+	 q,s,_dmpx,_dmpy="\f6","\n",0,-1
 	end
-tmap(ttable(v) or {v},function(str,i)
-	if ttable(str) then
-		q,p=dmp(str,q.."\n"..s..i.."{",s.." ").."\n"..s.."\f6}"
-	else
-		if not p then
-		q..="\n"..s
+	local p,t=s
+	tmap(ttable(v) or {v},function(str,i)
+		t=type(str)
+		if ttable(str) then
+			q,p=dmp(str,q..s..i.."{",s.." ")..s.."\f6}",s
+		else
+		 q..=join('',p,i
+		 ,comb(split"number string boolean function nil"
+		 ,split"\ff#\f6:\ff \fc$\f6:\fc \fe%\f6:\fe \fb*\f6:\fb \f2!\f6:\f2"
+			)[t],tostr(str),"\f6 ")
+			p=""
 		end
-	 q,p=join('',q,i,
-	 comb(split[[
-number string boolean function nil
-]],split"\ff#\f6:\ff \fc$\f6:\fc \fe%\f6:\fe \fb*\f6:\fb \f2!\f6:\f2"
-)[type(str)],tostr(str),' \f6'),true
-	end
-end)
+	end)
+	q..=(t and "" or s.."\f2!\f6:\f2nil")
 	::dmp::
-	if s=='' and not btnp(6) then
+	if s=="\n" and not btn(5,flip()) then
 		cls()
 		?q,_dmpx*4,_dmpy*6
-		_dmpx+=sgn(btn(0))-sgn(btn(1))
-		_dmpy+=sgn(btn(2))-sgn(btn(3))
-		flip()
+		_dmpx+=tonum(btn(0))-tonum(btn(1))
+		_dmpy+=tonum(btn(2))-tonum(btn(3))
 		goto dmp
 	end
 	return q
-end
-
-_sgn,sgn=sgn,function(v)
-return v==false and 0 or _sgn(v)
 end
 
 --dbg
@@ -411,18 +375,173 @@ dbg()
 
 -->8
 --init vars
-order_cnt = 0
-item_index = 0
-items = split'push unshift clear'
-scenes = mkscenes(split'library items stack transition push shift unshift remove')
+order_cnt=0
+item_index=0
+library_cursor
+,document_x
+,document_y
+,isdocument=1,0,0,false
+items=split'push unshift clear'
+scenes=mkscenes(split'library items stack transition push shift unshift remove')
+keycheck=mkscenes{'keycheck'}
+local fwidth=6
+local fheight=8
+rceach('0 0 16 16',function(cx,cy)
+	local b=0
+	rceach({0,0,fwidth,fheight},function(x,y)
+		b|=sget(cx*fwidth+x
+							,cy*fheight+y)
+							>0 and 1<<x or 0
+		if x==fwidth-1 then
+			poke(0x5600+cx*8+cy*128+y,b)
+			b=0
+		end
+	end)
+end)
+poke(0x5600,fwidth,fwidth,fheight,0,0,0x3)
 cls()
 cmdscenes([[
+keycheck st key_order 0
 stack st stacked 0
 items st draw_items 0
-]], items)
-
+]],items)
 function _update60()
-	item_index = mid( item_index, 1, #items)
+	foreach(keycheck,transition)	
+end
+
+function key_document(o)
+poke(0x5f5c,5,1)
+	isdocument=true
+	document_x+=tonum(btnp(➡️))-tonum(btnp(⬅️))
+	document_y+=tonum(btnp(⬇️))-tonum(btnp(⬆️))
+	if btnp(🅾️) or btnp(❎) then
+		cmdscenes[[
+keycheck st key_library 0
+]]
+	end
+end
+
+function key_library(o)
+poke(0x5f5c,10,2)
+ isdocument=false
+	if btnp(⬇️) then
+		library_cursor+=1
+		document_x,document_y=0,0
+	end
+	if btnp(⬆️) then
+		library_cursor-=1
+		document_x,document_y=0,0
+	end
+	if btnp(🅾️) or btnp(❎) then
+		cmdscenes[[
+keycheck st key_document 0
+]]
+	end
+	library_cursor=(library_cursor-1)%#libman+ 1
+end
+
+function draw_library(o)
+	local comment,doc,slicem,ln
+							='','',16,o.prm.ln
+	local fw,fh
+						=ln=='en' and 4 or fwidth
+						,ln=='en' and 6 or fheight
+	cls(3)
+	outline('knutil library help','8 8 4 10')
+	fillp(0x33cc)
+	local top,left,right
+							=exrect'4 16 120 44'
+								,exrect'4 60 48 56'
+								,exrect'52 60 72 56'
+
+	-- title
+	clip(unpack(split(left.p)))
+	tmap({
+		unpack(libman,library_cursor,library_cursor+7)}
+			,function(v,i)
+		local h,c,j,d=unpack(v)
+		if i==1 then
+			outline(h,isdocument and '8 65 6 5' or '8 65 5 7')
+			comment=
+			 ln=='en'
+			  and (c or 'no comment...')
+			 or j or 'なし'
+			doc=replace(d or 'no document...'
+									,[[\n]],"\n")
+			slice=ln=='en' and 17 or 11
+		else
+			?h,12,65+(i-1)*fh,11
+		end
+	end)
+	clip()
+	left.rs(isdocument and 0x31 or 0x39)
+
+	-- doc
+	clip(unpack(split(top.p)))
+	print(doc
+		,top.x+3-document_x*fw/1,top.y+5-document_y*fh/1,5
+	)
+	print(doc
+		,top.x+3-document_x*fw/1,top.y+4-document_y*fh/1,6
+	)
+	clip()
+	top.rs(isdocument and 0x39 or 0x31)
+
+	-- comment
+--	local comment=replace(comment,'゛','\+de゛\+di','゜','\|d゜\|h')
+--	local dc={}
+--	local ccomment=join('',unpack(tmap(split(comment,'゛'),function(v,i)
+--		add(dc,v)
+--	end)))
+--	local hd={}
+--	ccomment=join('',unpack(tmap(split(ccomment,'゜'),function(v,i)
+--		add(hd,v)
+--	end)))
+--	local i,li,ccomment,a=1,'','',0
+--	while comment[i] do
+--		local c=comment[i]
+--		if c=='゛' or c=='゜' then
+--			a+=1
+--		end
+--		li..=c
+--		i+=1
+--		if #li==slice+a or not comment[i] then
+--			local c=comment[i]
+--			if c=='゛' or c=='゜' then
+--				i+=1
+--				li..=c
+--			end
+--			li=replace(li,'゛','\+de゛\+di','゜','\+de゜\+di')
+--			ccomment..=li.."\n"
+--			li=""
+--			a=0
+--		end
+--	end
+--	dbg(#ccomment)
+
+--	clip(unpack(split(right.p)))
+	clip(right.x+3,right.y+2,right.w-(fw==fwidth and 6 or 5),right.h-7)
+--	?ccomment,right.x+4,right.y+5,5
+--	?ccomment,right.x+4,right.y+4,6
+
+	comment=replace(comment,'゛','\+de゛\+di','゜','\+de゜\+di')
+	for i=0,7 do
+			print(comment
+			,right.x+3-i*fw*slice
+			,right.y+5+i*fh
+			,5)
+			print(comment
+			,right.x+3-i*fw*slice
+			,right.y+4+i*fh
+			,6)
+	end
+	clip()
+	right.rs(0x31)
+end
+
+function key_order(o)
+	poke(0x5f5c,0,0)
+	item_index=mid(item_index,1,#items)
 	if btnp(🅾️) then
 		({
 			function()
@@ -447,90 +566,79 @@ transition cl
 		
  end
  if btnp(⬆️) then
- 	item_index -= 1
+ 	item_index-=1
  end
  if btnp(⬇️) then
- 	item_index += 1
+ 	item_index+=1
  end
- if btnp(➡️) then
- 	cmdscenes[[
-items cl
-stack cl
-library st library_draw 0
-]]
- end
-end
-
-function library_draw( o )
-cls()
 end
 
 function draw_items( o )
-	outline('knutil scene orders diagram', '8 8 1 12')
+	outline('knutil scene orders diagram','8 8 1 12')
 	outline([[/order\
 \ cmd /
 ]],'0 20 4 9')
-	tmap( items, function( v, i )
-		?v, 4, i * 8 + 28, i==item_index and 11 or 2
-	end )
+	tmap(items,function(v,i)
+		?v,4,i*8+28,i==item_index and 11 or 2
+	end)
 
 end
 
-function push_order( o )
+function push_order(o)
 	if o.fst then
 		order_cnt+=1
-		o.rect = exrect'-96 96 96 16'
-		o.id = order_cnt
-		o.cmd = 'ps'
+		o.rect=exrect'-96 96 96 16'
+		o.id=order_cnt
+		o.cmd='ps'
 	end
 	
-	local x = ceil(o.rate'-96 32')
-	o.rect.ud( x ).rf(9)
-	?'<ps> push order',x + 8,o.rect.y + 5,4
+	local x=ceil(o.rate'-96 32')
+	o.rect.ud(x).rf(9)
+	?'<ps> push order',x+8,o.rect.y+5,4
 	
 	if o.lst then
 		cmdscenes('shift ps shift_order 30',o)
 	end
 end
 
-function unshift_order( o )
+function unshift_order(o)
 	if o.fst then
-		order_cnt += 1
-		o.rect = exrect'32 -32 96 8'
-		o.id = order_cnt
-		o.cmd = 'us'
+		order_cnt+=1
+		o.rect=exrect'32 -32 96 8'
+		o.id=order_cnt
+		o.cmd='us'
 	end
-	local y = ceil(o.rate( { -32, 24 } ) )
-	o.rect.ud( nil, y )
-	.rf( 1 ).rs( 13 )
-	print("<us> unshift order ".. o.id
-		, o.rect.x + 8, o.rect.y + 2
+	local y=ceil(o.rate({-32,24}))
+	o.rect.ud(nil,y)
+	.rf(1).rs(13)
+	print("<us> unshift order "..o.id
+		,o.rect.x+8,o.rect.y+2
 	)
 	
 	if o.lst then
-		local s = cmdscenes'transition fi transition_order'[1]
+		local s=cmdscenes'transition fi transition_order'[1]
 		if s then
-			s.prm.res = s.cnt
+			s.prm.res=s.cnt
 		end
 		cmdscenes('transition us transition_order 200',o)
 	end
 end
 
-function shift_order( o )
-	local len = o.prm.cmd == 'ps' and #_scal.transition.ords or 1
-	local rc = o.prm.rect
+function shift_order(o)
+	local len=o.prm.cmd=='ps' and #_scal.transition.ords or 1
+	local rc=o.prm.rect
 
-	rc.ud(nil,o.rate('96 '..24+len * 8),nil,o.rate'16 8').rf(9).rs(4)
-	print("<sh> shift order "..o.prm.id, rc.x + 8, rc.y + o.rate'5 2', 4)
+	rc.ud(nil,o.rate('96 '..24+len*8),nil,o.rate'16 8').rf(9).rs(4)
+	print("<sh> shift order "..o.prm.id,rc.x+8,rc.y+o.rate'5 2',4)
 	
 	if o.lst then
 		cmdscenes('transition ps transition_order 200',o.prm)
 	end
 end
 
-function stacked( o )
-	local os = _scal.transition.ords
-	local len = #os
+function stacked(o)
+	local os=_scal.transition.ords
+	local len=#os
 
 	fillp(0x6996)
 	exrect'32 16 96 128'.rs(2)
@@ -538,61 +646,61 @@ function stacked( o )
 	fillp()
 
 --	tmap( slice( os, 2 ),function(v,i)
-	tmap( {unpack( os, 2 )},function(v,i)
+	tmap({unpack(os,2)},function(v,i)
 
-		local r,p,f,s = v.prm.rect, v.prm.cmd == 'ps'
+		local r,p,f,s=v.prm.rect,v.prm.cmd=='ps'
 		if p then
-			f,s = 4,9
+			f,s=4,9
 		else
-			f,s = 5,13
+			f,s=5,13
 		end
 			r.rf(f).rs(s)
-			print("     stack order "..v.prm.id, r.x + 8, r.y + 2, s)
+			print("     stack order "..v.prm.id,r.x+8,r.y+2,s)
 	end)
 end
 
 
-function transition_order( o )
-	local rc = o.prm.rect
-	local recnt = o.cnt - ( o.prm.res or 0 )
-	local y = o.rate( { rc.y, 16 }, 32, recnt )
-	local cmd = o.prm.cmd == 'ps' or o.cnt > 8
-	local f,s 
+function transition_order(o)
+	local rc=o.prm.rect
+	local recnt=o.cnt-(o.prm.res or 0)
+	local y=o.rate({rc.y,16},32,recnt)
+	local cmd=o.prm.cmd=='ps' or o.cnt>8
+	local f,s
 	
-	if o.prm.cmd == 'ps' then
-		f,s = 9,10
+	if o.prm.cmd=='ps' then
+		f,s=9,10
 	else
-		f,s = 13,12
+		f,s=13,12
 	end
 
-	rc.ud( nil, y, nil, o.rate( { 8, 16 }, 16, recnt ) )
-		.rf( f ).rs( s )
-	print("<tra> transition "..o.prm.id.."\n       order ".. o.cnt.. '/'.. o.dur
-		, rc.x + 8, rc.y + 2
-	,s )
+	rc.ud(nil,y,nil,o.rate({8,16},16,recnt))
+		.rf(f).rs(s)
+	print("<tra> transition "..o.prm.id.."\n       order "..o.cnt..'/'..o.dur
+		,rc.x+8,rc.y+2
+	,s)
 	
-	local os = _scal.transition.ords
+	local os=_scal.transition.ords
 	
 --	tmap( slice( os, 2 ),function( v, i )
-	tmap( {unpack( os, 2 )},function( v, i )
-		local r = v.prm.rect
+	tmap({unpack(os,2)},function(v,i)
+		local r=v.prm.rect
 		if r then
-			local y = i * 8
-			r.ud( nil, o.rate( 
-				cmd and { y + 32, y + 24 }
-					or { y + 16, y + 24 }
-				, 8 , recnt ) )
+			local y=i*8
+			r.ud(nil,o.rate(
+				cmd and{y+32,y+24}
+					or {y+16,y+24}
+				,8,recnt))
 		end
 	end)
 	
 	if o.lst then
-		cmdscenes( [[
+		cmdscenes([[
 remove ps remove_order 120
-]], o.prm )
+]],o.prm)
 	end
 end
 
-function remove_order( o )
+function remove_order(o)
 	if o.fst then
 		cmdscenes[[
 transition us nil 120
@@ -600,17 +708,15 @@ unshift us nil 120
 ]]
 	end
 	
-	local rc = o.prm.rect
-	rc.ud( o.cnt + 32 ).rs( 8 )
-	print("<rm> remove order", rc.x + 8, rc.y + 5)
+	local rc=o.prm.rect
+	rc.ud(o.cnt+32).rs(8)
+	print("<rm> remove order",rc.x+8,rc.y+5)
 end
+
 
 function _draw()
 	cls()
 	foreach(scenes,transition)
---	tmap(scenes,function(v)
---		v.tra()
---	end)
 	dbg(version)
 	dbg()
 end
@@ -642,35 +748,98 @@ player{
 --initialize global variables
 cat(_ENV,htbl[[
 tokencost{
---tokencost--
+--tokencost-- [❎-to-exit]
  knutil{
-  token=1064;
   essential-library
+  token=1050;
  }
  scenes{
-  token=357;
   scene-manager
+  token=367;
  }
  dmp{
-  token=109;
   dump-table-values
+  token=152;
  }
  dbg{
-  token=61;
   value-instant-print
+  token=48;
  }
 }
 ]])
-menuitem(1,'library info',function()
+
+menuitem(5,'scene order dg',function()
+cmdscenes([[
+keycheck st key_order 0
+stack st stacked 0
+items st draw_items 0
+library cl
+]], items)
+poke(0x5f58,0)
+end)
+
+menuitem(3,'library info',function()
 dmp(tokencost)
 end)
 
+menuitem(2,'ライフ゛ラリ(jp)',function()
+library_init([[ln=jp]])
+poke(0x5f58,0x81)
+end)
+menuitem(1,'library help',function()
+library_init([[ln=en]])
+poke(0x5f58,0)
+end)
 
+function library_init(p)
+libman=split([[
+bpack	pack the value of the bit specification with bit width.	ふくすうのbitちをしていして ひとつのすうちに つめます。	bpack(w,s,b,...)\n- @param  table  w   -- bit width table for packing.\n- @param  number s   -- bit value to be shifted to the right before the first pack.\n- @param  number b   -- the value to pack.\n- @param  number ... -- bit width to the next pack.\n- @return number     -- packed value.
+bunpack	slice the value with bit width.	bitはは゛をしていして ひとつのすうちを ふ゛んかつしてかえします。	bunpack(b,s,w,...) \n- @param  number b   -- the value to slice.\n- @param  number s   -- bit value to right-shift before the first slice.\n- @param  number w   -- bit width to the first slice.\n- @param  number ... -- bit width to the next slices.\n- @return ...        -- sliced value as a tuple.
+cat	concatenate tables. indexes are added last and identical keys are overwritten.	テ-フ゛ルのれんけつをします。	cat(f,...)\n- @param  table f   -- add destination table.\n- @param  table ...  -- next table to add.\n- @return table        -- concatenated table.
+comb	combines two tables to create a hash table.	キ-のテ-フ゛ルと あたいのテ-フ゛ルから れんそうはいれつテ-フ゛ルを さくせいします。	comb(k,v)\n- @param  table k   -- key string table.\n- @param  table b   -- value tables.\n- @return table     -- table of associative arrays.
+dmp	dumps information about a variable.	テ-フ゛ルのないようを ひょうし゛します。	dmp(v)\n- @param  any v   -- value to be displayed, table.
+htbl	converting a string to a table(multidimensional array / hash table / jagged arrays)	もし゛れつから テ-フ゛ルを さくせいします。(たし゛ゅうはいれつ たいおう)	htbl(ht)\n- @param  string ht  -- formatted string.\n- @return table      -- generated table.
+inrng	tests that the specified value is within a range.	すうちか゛はんい ないて゛あることを はんていします。	inrng(...)\n- @param  number ...  -- test value\n- @param  number ...  -- lowest value\n- @param  number ...  -- highest value\n- @return boolean     -- if it's within the range
+join	joins strings with a delimiter.	もし゛れつを れんけつします。	join(d,s,...)\n- @param  string d     -- delimiter\n- @param  string s,... -- string to be joined\n- @return string       -- joined string value
+rceach	iterate from rectangle values.	くけいテ゛-タて゛ ル-フ゜をします。	rceach(r,f)\n- @param  string|table r  -- rectangle initialization format.\n- @param  function f      -- function(x, y, r) to execute.\n* in a function\n-- @param x  number       -- x-coordinate\n-- @param y  number       -- y-coordinate\n-- @param r  string|table -- argument rectangle format
+replace	perform string substitutions.	もし゛れつを ちかんします。	replace(s,f,r,...)\n- @param  string s    -- target string\n- @param  string f    -- matching string\n- @param  string r    -- string to replace from the matched string\n- @param  string ...  -- next match & replace string\n- @return string      -- replaced string
+tmap	more compact operable foreach iterator.	foreachの ついかきのうは゛ん。	tmap(t,f)\n- @param  table t     -- table to scan\n- @param  function f  -- function(v, i) to execute.\n- @return table       -- table of arguments updated in the function.\n* in a function\n-- @param v  any      -- table elements.\n-- @param i  number   -- indexes associated with table elements.\n-- @return   any      -- table element to update the current index.
+tbfill	creates a table filled with the specified values.	していした すうちて゛うめたテ-フ゛ルを つくります。	tbfill(v,s,e,...)\n- @param  any    v    -- values that satisfy the table.\n- @param  number s    -- index to start.\n- @param  number e    -- index value to end.\n- @param  number ...  -- indexes to start and end the next level of hierarchy.\n- @return table       -- table filled with values. 
+ttable	if the argument is a table, the table is returned.	テ-フ゛ルて゛あれは゛テ-フ゛ルをかえし、そうて゛なけれは゛false をかえします。	ttable(p)\n- @param  any p  -- result of the survey.\n- @return any    -- returns the table, if it is a table, or false otherwise.
+tonorm	converts from a string to a type-specific value.	もし゛れつから かたにあわせた あたいにへんかんします。	tonorm(s)\n- @param  string s  -- string to be converted.\n- @return any       -- value converted to the appropriate type.
+tohex	converts an integer 10 number to the specified number of hexadecimal digits.	せいすうの10しんすうちを していしたけたすうの 16しんすうに へんかんします。	tohex(p,n)\n- @param  string p  -- decimal integer value to be hexadecimal.\n- @param  number n  -- number of digits to output.\n- @return string    -- converted hexadecimal string (without 0x)
+toc	divides by the specified number and outputs an integer value.	していしたすうちて゛わり、せいすうちをかえします。	toc(v,p)\n- @param  number v  -- value.\n- @param  number p  -- divisor.\n- @return number    -- integer value with division and no remainder.
+split	wrapper function for split, generating a multilevel hierarchical table by specifying multiple delimiters.	splitのラッハ゜-かんすう、ふくすうのくき゛りもし゛をしていして たし゛ゅうかいそうテ-フ゛ルを せいせいします。	split(str,d,...)\n- @param  string str  -- value.\n- @param  number d    -- delimiter.\n- @param  number ...  -- separator to create further hierarchy.\n- @return table       -- segmented table.
+htd	convert a contiguous hexadecimal string into a table.	れんそ゛くした16しんすうもし゛れつを テ-フ゛ルにへんかんします。	htd(b,n)\n- @param  string b  -- consecutive hexadecimal strings (not including 0x).\n- @param  number n  -- number of digits to be split.\n- @return table     -- segmented table.
+outline	drawing text, including outlines.	もし゛をアウトラインふくめて ひ゛ょうか゛します。	outline(t,a)\n- @param  string t  -- text to display.\n- @param  string b  -- text display coordinates, color, border color string.
+mkpal	create a palette table with consecutive hexadecimal strings.	れんそ゛くした16しんすうもし゛れつて゛ ハ゜レットテ-フ゛ルをさくせいする。	mkpal(f,t)\n- @param  string f  -- color before change, consecutive hexadecimal string.\n- @param  string t  -- changed color, contiguous hexadecimal string.\n- @return table     -- palette table that can be specified directly to pal().
+ecmkpal	create a palette from a table. (tied to the theme name)	テ-フ゛ルからハ゜レットを さくせいします。	ecmkpal(v)\n- @param  table v  -- color conversion format table.\n- @return table    -- color palette table tagged with.
+ecpalt	transparency setting from the color table.	カラ-テ-フ゛ルから とうめいせっていをします。	ecpalt(p)\n- @param  table p  -- table of colors to be transparent.
+amid	mid with positive and negative of the specified number.	していしたすうちの「せい」と「ふ」て゛midを おこないます。	amid(c,a)\n- @param  number c  -- number to be tested.\n- @param  number a  -- upper and lower limit values.\n- @return number    -- result of mid().
+exrect	generate rect object with extended functionality.	きのうかくちょうしたrectオフ゛シ゛▤クトを せいせいします。	exrect(p)\n- @param  string|table p -- 'x y w h' {x,y,w,h} rectangle data. this argument is retained.\n- @return rect-object    -- rectangular objects that can be drawn and judged.
+mkscenes	create a multitasking scene object.	マルチタスクの シ-ンオフ゛シ゛▤クトを さくせいします。	mkscenes( keys )\n- @param  table keys  -- scene name table.\n- @return table       -- scene object table for scanning.
+dbg	outputs values to the screen regardless of output timing.	しゅつりょくタイミンク゛かんけいなして゛ あたいを か゛めんしゅつりょくします。	dbg(...)\n- @param  any ...  -- value to be examined (other than table)
+]],"\n","\t")
+--dmp(v)
+cmdscenes([[
+library st draw_library 0
+keycheck st key_library 0
+items cl
+stack cl
+transition cl
+push cl
+shift cl
+unshift cl
+remove cl
+]],htbl(p))
+
+end
 
 -->8
 --[[
 update history
 **v0.12**
+-library help added to pause menu
 -bmch: unlisted
 -exrect: fix variable and function names
 -scene:
@@ -678,7 +847,7 @@ update history
 --cmdscenes: continuous call handling
 --added functions for iterators
 -dbg: simplification by join
--join for long data
+-*join for long data*-
 --function join(d,s,...)
 --local a={...}
 --while a[1] do
@@ -748,135 +917,133 @@ update history
 -example: add htbl() example use
 
 ]]--
+    
 __gfx__
-00991000000991000000000000000000099910000009991000000991100000007771000771000000991191100111191000011910000000000000000004444000
-09999100009999109910441004410991999991000099999100009991991000007777107777100000999999100999991000999910000044440444444047777440
-09499100009949109914441004441991944999100999449100009949910000004777714777710000019977100999971000999710000499994777799447777794
-94799910099974917994441004449971774499100994477109994999491999114777744477741000999777109999771000999710004777794777779917777799
-97749910099477917999441004499971477499919994774199999499999499914477444444441000997777109997771009997710017777791777779914777799
-77779991999777717999991009999971777499919994777194999999999999914444499999444100997777109997771009997710017777491477779901477999
-97779999999777917799999999999771477999999999774177499999999999914449999999994100099771000999711009999110017777440144779901499999
-94799999999974919799999999999791979999999999949197799999999994911499999999999410000000000000000000000000001144400014449000144990
-19999999999999101999977777999910199999999999991019999999999999107999999999999971994474100444474000011910000000000000000000444440
-09999999999999100999777777799910099999777999991009999999999999107999999999999971997777410997777100999971000444440044444404999994
-09622999996229100999977777999910099267777792691006e6269999662e107999999999999971094777410994774100999441004999990499999949999999
-09e269999962e91009e669777766e910092d2777772d2910066ed299996ed21016e2699999962e10997474109997441000999410049999994999999944999999
-096d2999996d2910092dd99779dd2910092dd77777dd291099ffc59999ffc591066d29977796d210997777109997771009999410049999994499999914499999
-99fc599916fc5991995cc99164cc599199fc5777165cf991999777771677799177fc5777777fc577999779109999771009999910014999991449999901449999
-97777738777777919999973879999991999977387779999119997738777999101177738877777711099991000999911009999110014499990144999900144990
-111777ab77771110111977ab77991110111777ab77771110019777ab7777910000177ab777777100000000000000000000000000001111100011111000011100
-09999910099999100000000000000000991000000000099100020000000000000044440000971970000000000044440000441740000000000000000004400000
-099999919999999100999100009991004991000000009941222a222000991100009999440494944100991000009999400419ee11000004440000000047740000
-9999999199999991099499100994991074991000000994712a777a20199999100999999404999941199991000999999104ee44e1000449990444000047774000
-99949991999499910974991009947910749991000099947102a7a200199999910994994709999947199999100999999109949941004779994777444417777440
-99947991997499919977499199477991774999100999477102a4a20019499497199749740999994419999910199999910949ee91017777991777779901777794
-9994799199749991997749919947799177499991999947712a222a201474974711474471014444111199941011194941014eee10177774441777779901777999
-99477999997749919777999999977791774999999999477122000220017447110111111000111100014444100001111000111100177444440147744400144499
-44499999999944419479999999997491479999999999974100000000001111000000000000000000001111000000000000000000011000000004444400014440
-199999999999991019997999999799101999999999999910000ee000001199000011990000111100001199000011990000111100000000000000000000440000
-09999999999999100999999999999910099999979999991007e22ee0011999100119999001999910011999100119999001199910000000440444444404994400
-0999999999999910096229999962291009662997996629100edffde0079999101499999114499991019999100199999101999991004444994999999949999944
-09e269999962e91009ed6999996de91009ed6977796de910e2f78f2e019999101744999114444941019999100149999101449991044999994999999919999999
-096d2977796d291009fc599999fc591009fc597779fc591081e88e18014999100144499117174471014999100144499100144441049999991999999901999999
-99fc577716fc59919967777717776991997cf77716fc7991085ee580014444100017171001171171001444100011111000011110049999990119999900199999
-977777387777779197777738777777919777773877777791088118f0017171000001010000010010000111000000000000000000019999000000099900000999
-111777ab77771110111777ab77771110111777ab7777111000088000001010000000000000000000000000000000000000000000001110000000000000000000
-0000000000000000bbb999999999999999999bbb121211331133331133112121111111111a311aa111111111000000000000009999999999bbbbbbbbbbbbbbbb
-0000000000000000bb99999449999994499999bb212133a3133aa3313a33121211a31a11a333133311111111000000000000999999999999bbbbbbbbbbbbbbbb
-0000000000000000b9999944449999444499999b1213aaa333aaaa333aaa31211a33a331a333313311f11111000000000009999999999988bbbbbbbbbbbbbbbb
-0001111111111000b9944994499449944994499b213aaa333aaa3aa333aaa3121a3313313333313311111111000000000999999889998888bbaabbbbbbbbbbbb
-000100000000100099449999994444999999449913a3a3313aa33aa3133a3a31133333313333313311111111000000009999988888888888baaaaabbbbbbbbbb
-0001000000001000994499999444444999994499133a3111333313331113a331131313113333133311111171000099999988888bb888bb88aa99aaaabbbbbbbb
-000100000000100094444994994444994994444911331311131313311131331111313131133113312111111109999998888bb88888888888a9999aaabbbbbbbb
-000100000000100044444444999999994444444421111111111111111111111211111111111111111111111199988888888888888888888899999999bbbbbbbb
-00010000000010002222222211111111666666664442222222212222222242441111111113331331111211118888888899000000000000008888888888888888
-000100000000100022244222111111116ffffff64424222212121212222242441113331133333133212121218888888899900000000000008888888888888888
-00010000000010002244442211111111dffffffd4442222221222122222224441133313133333133121112118888888899999000000000008888888bb8888888
-00010000000010002244442211111111d666666d4442222222222222222224441313133133313331111111118888888889999990000000008888888bb8888888
-000111111111100022444422111111114dddddd4444222222221222222222444133131311313131311121111888888888889999900000000888888bbbb888888
-000000000000000042244224111111112444444244422222121212122222244413131311313111312121212188888888b888889999990000888888bbbb888888
-000000000000000042222224111111111222222144242222212221222222424411313111111111111211121188888888888bb8888999999088888bbabbb88888
-000000000000000042222224111111111111111144242222222222222222244411111111111111111111111188888888888888888888899988888baabbb88888
-0000bbbaabbb00002244442288886666666688880022220088888888000000008888888888888888888888888888888888888888888888888888bbaabbbb8888
-00bbbbbbbbbbbb002222222288886ff66ff688880225522088888888111111118888888888888888888888bbbb8888888888888bb88888888888baaabbbb8888
-0bbbbaabbbbbbbb0222222228888dffddffd888822555522888888880000000088888888888888888888bbbbbbbb8888888888bbbb888888888bbaaabbbbb888
-0bbaabbbbbbbbbb0222112228888dddddddd8888255552228888888811111111888888888888888888bbbbbbbbbbbb8888888babbbb88888888baaaabbbbb888
-bbbabbbbbbbbbbbb1222222166664444444466662255222288888888111111118888888888888888bbbbbaabbbbbbbbb8888bbaabbbb888888bbaaaabbbbbb88
-bbabbbbbbbbbbbbb222222226ff6222222226ff6122522218888888800000000888888bbbb888888bbbaaaaabbbbbbbb888bbaaabbbbb88888baaaaaabbbbb88
-bbabbbbbbbbbbbbb22111122dffd11111111dffd1222221188888888111111118888bbbbbbbb8888bbaaa99aabbbbbbb88bbaa9999bbbb888bbaaaaaaabbbbb8
-abbbbbbabbbbbbba11222211dddd11111111dddd1125211188bbbb881111111188bbbbbbbbbbbb88aaa99999999bbbbb8bbaa999999bbbb8bbaaaaaa999bbbbb
-abbbbbaaabbbbbba998888f97788887711252111122222118888baaabbbb8888aaaaaaaa88888888888888888888888888888888aaaaaaaa99999999bbbbbbbb
-bbbbbbbabbbbbbbb9999f999227f7f221122211112222211888bbaaabbbbb888aaaaaaaa88888888888888888888888888888888aaaaaaaa99999999bbbbbbbb
-bbbbbbbbbbbbbabb4f99999422222222111211111222221188bbaaaabbbbbb88aaaaaaaa88888888888888888888888888888888aaaaaaaa99999999bbbbbbbb
-bbbbbbbbbbbbbabb44494444f222222411115111112221118bbbaaaabbbbbbb8aaaaaaaa888889988888888888888888bbbbbbbbaaaaaaaa99999999bbbbbbbb
-bbbbbbbbbbbbabbb444494442222f4221511251111111112bbbaaaaabbbbbbbb9aaaaaaa8899988988888888bbbbbbbbbbbbbbbbaaaaaaaa99999999bbbaabbb
-0bbbbbbbbbaabbb04444444422f422221251221121111112bbaaaaa99bbbbbbb99aaaa9999889999bbbbbbbbbbbbbbbbbbbbbbbbaaaaaaaa99999999bbaaaabb
-00bbbbbbbbbbbb0044444444442222441221221102111120baaaaa9999bbbbbb9999999999999999bbbbbbbbbbaaaabbbbbbbbbbaaaaaaaa99999999aa999aaa
-0000bbbaabbb000044444444444444441225221100222200aaaa99999999bbbb9999999999999999bbbaaaaaaaaaaaaaaaaaabbbaaaaaaaa9999999999999999
-00cccccccccccc00888aaa8819aaa2118aaa88881124a44aa4444a4a4a4fff426c677767111232111111111166656655221dd711552552111111111111111111
-0cddddddddddddc088a999a212999aa1a999a888122444a4444a44a444a4aaf4cccccccc11233321111ddd11aa7db7d522144f11a659659111f9999199999941
-cdd666666ddddddc8a9999921299999a29999a8822444444444444444a4affafdcdcdcdc1123332111d999d1aaa2bb22221dd711aa2992111f99992299999941
-cd666dddd65ddddc8a9992211122999a229999a822444444444444444a4a4affcdcdcdcd11d3b3d11d96999daaa2bb2222144f11aa2992111999921299999941
-cd66dddddd55dddca9992a911aa229991222999a22444444444444444a4aafafdddddddd11d3b3d11d99999daaa2bb22221dd711aa2992111999211599999941
-cdd55dd55d555ddca922a992a9a122222aa2222a222442442442244424a444f4dddddddd11d3b3d11d99999d4442442122144f1122111111199211f499999941
-cdd5555115555ddc22119922999a1222a99a12221222222242244222124aaf42d1d1d1d1111d3d1111d999d177777777ee111412ffffffff19211f9499999941
-cddd55111155dddc11122222999a1221999911221122222222222222112222211d1d1d1d111d3d11111ddd114444444411144f11222222221211f99499999941
-6ddd22111122ddd609aaa20099921aa199920aa0666666664a4a4421444444441111111111233321111111114fffffff1111111114444444111f999192119941
-6cd2222112222dc602999aa02992a99a2992a99adddddddd4aa44221222222221111111112333332000000004fffffff111111111444444411f9999192119941
-6cd2222112222dc60299999a2922a9922922a992dddddddd4aaa422122222222111111111233b3321111111144ffffff11111111114444441f99992292119941
-6cdd22222222ddc60022999a2221299222202992dddddddd4aa4442122222222111111111233b3320000000044ffffff11111111114444441999921292119941
-6cddd222222dddc60aa229991212999202029992dddddddd4aa4442122222222111111111d3bbb3d11111111444fffff11111111111444441999211592119941
-6ccddddddddddcc6a9a022221129992200299922dddddddd4a4a422122222222111111111d3bbb3d00000000444fffff1111111111144444199211f492119941
-06cccccccccccc60999a02221129922100299220dddddddd4aa4442122222222111111111d3bbb3d111111117777777722ff7777ffffffff19211f9492119941
-0066666666666600999a02201122221100222200222222224aa44221111111111111111111d3b3d1000000004444444411224444222222221211f99492119941
-9999999922555522d6666665ffffffff4442221111222444222292229999a99966888888000000dddddddddd550000008888888888888888111f999499999941
-999999996e5ff5e66111111d7777777744222117711222442292292299a99a996688888800000fdddddddddd55d00000888888888888888811f9999299999941
-222222226e6ff6e66111111d777777774222117777112224292992929a9aa9a9778888880000ffd88888888885dd000088888888888888881f99992299999941
-111111116f67f6f66000000d77777777222117777771122292992922a9aa9a9977888888000fff888888888888ddd00088888888888888881999921299999941
-111111116f6f76f66000000d777777772211777777771122292992929a9aa9a97788888800fff88888888888888ddd0088888888888888881222222522222211
-999999996f67f6f66000000d7777777721177777777771122292992999a9aa9a778888880dff8888888888888888dd5088888888888888881999999499999941
-999999996e5ff5e66000000d777777771177777777777711292992929a9aa9a966888888ddf8888888888888888885558888888dd88888881111111111111111
-11111111225ff5225dddddd5dddddddd1dddddddddddddd12292292299a99a9966888888dd8888888888888888888855888888dddd8888881111111111111111
-9999994100256200f777777defffffff888888aaaa888888e6666651fffffff2888888665588888888888888888888dd888888dddd888888121244212b1b77b1
-9999994100256200f777777d2777777788888aaaaaa8888865555511999999f288888866555888888888888888888ddd8888888dd8888888bf2f77f12b1b77b1
-9999994100256200f777777d276777778888aaa44aaa888865155511222222228888887705dd8888888888888888ffd08888888888888888bf2f77f12b1b77b1
-9999994100256200f777777d27777777888aaa4224aaa8886555551199f299998888887700ddd88888888888888fff008888888888888888bf2f77f12b1b77b1
-9999994100256200f777777d2777777788aaa422224aaa88655555112222222288888877000ddd888888888888fff00088888888888888882b1bffb12b1b77b1
-9999994100256200f777777d276777778aaa42222224aaa86515551122222222888888770000dd58888888888dff000088888888888888882b1bffb12b1b77b1
-9999994100256200f777777d27777777aaa4222222224aaa65555511222222228888886600000d5555555555ddf0000088888888888888882b1bffb12b1b77b1
-9999994100256200f777777d1dddddddaa211111111112aa5111111111111111888888660000005555555555dd00000088888888888888882b1bffb12b1b77b1
-004222004444420600000000000000000000000000000000000e220000888800000000000cdd66f0222222222222222221111111111222222ff4442222444ff2
-00224444449494720f4000f40000000000000000000000000007ee0008d7d78011000011cd66c6f5444444444444442222211122222222442ff4442222444ff2
-444444449949446207f0007f000dddd007bb07bb0a9000a9000eee0087d0d0d822111122cd66fc75444444444fffff4442222222244444442fff44422444fff2
-44449999200577650ff000ff00d7666d0b330b3307a0007a000ee0002d0000d2277772e2d5c6f5114444ffffffff22ff444222444444444422ff44422444ff22
-09922444256600070ff000ff00665566000000000aaa0aaa0e220e22200000027eeeee20d55c711144fffffff2222222ff4444444444444422ff44422444ff22
-00294442260000000000000000cc55cc07bb07bb0aaa0aaa07ee07ee7d0d0d0deeeee200d6651155fffff2222222222222fff4444444444422ff44422444ff22
-094444225600000000000000000cccc00b330b3309aa0aa90eee0eee8d7d7d78eeee2000c66f15d62222222222222fffff222fffffffffff22ff44422444ff22
-9994420060077666000000000000000000000000009a9a900ee00ee0088888800eee20000c67156f2222222222fffffffffff2222222222222ff44422444ff22
-999422005065511100000000000000000000000000dddd000dddd000ee00ff7700000002200000002222222222fffffffffff2222222222222ff44422444ff22
-002224007656cccc0000000000111100011111100d1111d0d1111d00e0ff99f90000002bb20000002222222222222fffff222fffffffffff222ff442244ff222
-00222400606ccccc0000000000167111117667100111111d111111d00f999424000005733d500000fffff2222222222222fff444444444442222ff4224ff2222
-0022440006577666000000000016676661610000d1115511166111d0f994422400022dd737d5200044fffffff2222222ff44444444444444f222ff4224ff222f
-0042420000666511000000000116676665710000111555516666111df94442405523bbdd7dbb32254444ffffffff22ff4442224444444444f2222f4224f2222f
-0444220000666655000000001165676666656000111555516666111df9442240bd7b33300d33b7dd444444444fffff444222222224444444ff222f4224f222ff
-0994240000666655000000001665666666651110144155516661771d4f22240ebdd7730000377ddb44444444444444222221112222222244ff22f422224f22ff
-0942220000066666000000001666667666666120144411111117771d044440ee33dd00000000ddb322222222222222222111111111122222ff22f422224f22ff
-00112400000bb0ba0bbbbb001666566766666122144413333317771d000056654444442222444444ffffff2222ffffff2222111222111222ff2ff422224ff2ff
-002222400bbbabaab6a996b01666656676666122144133333331771d56655665444422ffff224444ffff22ffff22ffff2211221111221122ff2f42211224f2ff
-00222240bbaaaaa8b79997b01161165666777112114233333332711d566557754442ffffffff2444fff2ff4444ff2fff2212111111112212f2ff42211224ff2f
-00221220baaa8a88b97779b00161116566666712112233333332211d57755775442ffffffffff244ff2f44444444f2ff2121111111111222f2f4221111224f2f
-00421200baa44a88b39993b0011111666556671201122333332211d05775577542ffffffffffff24f2f4444444444f2f2211111111111122f2f4221111224f2f
-00212200b444a4a40bb4bb00001166666661111201111222221111d05776675542ffffffffffff24f2f4444444444f2f12111111111111222ff4222112224ff2
-00211200244a424400bab0000001116666112222000111111111dd00057777502ffffffffffffff22f444444444444f221111111111111122ff4422112244ff2
-001111002222214200b6b00000000111111222000000011111dd0000005775002ffffffffffffff22f444444444444f221111111111111122ff4442112444ff2
-02222220033333300099990000222200099999900999999000666600000660002ffffffffffffff22f444444444444f221111111111111122ff4442112444ff2
-288888823733337309ffff90029999209ffffff90094490000677600001661002ffffffffffffff22f444444444444f221111111111111222ff4442112444ff2
-288888823737737309ffff9002999992affffffa00944900067777600116611042ffffffffffff24f2f4444444444f2f22111111111112112ff4442112444ff2
-e888888eb737737b07ffff702999999499ffff9900f44f006777777601cccc1042ffffffffffff24f2f4444444444f2f22111111111111112ff4442222444ff2
-e888888eb7b77b7b07ffff7049999944099ff99000f44f00f777777f01cccc10442ffffffffff244ff2f44444444f2ff12211111111112222ff4442222444ff2
-ee8888eeb777777b077ff77044999940a999999a00f44f00f777777f06cccc604442ffffffff2444fff2ff4444ff2fff11221111111122212ff4442222444ff2
-0eeeeee0bb7bb7bb0077770004499440aaa99aaa00f44f00ff7777ff06cccc60444422ffff224444ffff22ffff22ffff21112111112221112ff4442222444ff2
-000ee0000bbbbbb000077000004444000aaaaaa000ffff000ffffff0006666004444442222444444ffffff2222ffffff12211112222222212ff4442222444ff2
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+07770000000000000000000000000007070000070007000007770000000007070000000000000000000070700077000000000000000000000000000000000000
+07770007770007770007070007070007070000770007700007000000000007770000000000000000000070700077000000000000000000000000000000000000
+07770007770007070000700000000007070007770007770007000000070000700007700000000000000000000000000000000000000000000000000000000000
+07770007770007770007070007070007070000770007700000000000070007770007700077000077000000000000000000000000000000000000000000000000
+07770000000000000000000000000007070000070007000000000007770000700000000000700077000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000700007070007070007770007070077000000700000700007000007070000000000000000000000000000070000000000000000000000000000000000
+00000000700007070077770007700000070070700000700007000000700000700000700000000000000000000000700000000000000000000000000000000000
+00000000700000000007070000770000700007770000000007000000700007770007770000000007770000000000700000000000000000000000000000000000
+00000000000000000077770007770007000070700000000007000000700000700000700000700000000000000000700000000000000000000000000000000000
+00000000700000000007070000700007070077770000000000700007000007070000000007000000000000700007000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+77770007700077770077770070700077770077770077770077770077770000000000000000070000000007000007770000770000000000000000000000000000
+70070000700000070000070070700070000070000070070070070070070000700000700000700077770000700000070000770000000000000000000000000000
+70070000700077770077770070700077770077770000070077770077770000000000000007000000000000070000770000000000000000000000000000000000
+70070000700070000000070077770000070070070000070070070000070000700000700000700077770000700000000000000000000000000000000000000000
+77770007770077770077770000700077770077770000070077770077770000000007700000070000000007000000700000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+07770000000077000000000000007000000007777000000077000007700000770077000007700000000000000000000000000700000000000000000000000000
+70707077770077000007777000007007777007700077770077000000000000000077000007700077077007770007770000007000000000000000000000000000
+70707000777077770077000007777070077077777077007077770007700000770077777007700077777077007077007000007000000000000000000000000000
+70070077007077007077000077007077700007700000777077007007700000770077700007700070707077007077007000007000000000000000000000000000
+07777077777077777007777077777077777007700077777077007007700077770077077007770070007077007007770000070000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000007700000000000000000000000000000000000000007700007000007700000700000000000077700000000000000000000000000
+07777077770077077007777077777077007077007070007077007077007077777007000000700000700007070000000000000700000000000000000000000000
+77007077007077700077700007700077007077007070707077007077777000077007000000700000700000000000000000007700000000000000000000000000
+77777077777077000000077007700077007077070077777007770000007077700007000000700000700000000000000000000000000000000000000000000000
+77000000007077000077777007777077777007700077077077007077770077777007700000070007700000000007770000007000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00700007770007770007777077770007777007777007777077007077770007777077077077000070007077007007770000000000000000000000000000000000
+00070077007077007077000077007077000077000077000077007007700000770077070077000077077077707077007000077700000000000000000000000000
+00000077007077770077000077007077770077770077077077777007700000770077700077000077707077777077007070770070000000000000000000000000
+00000077777077007077000077007077000077000077007077007007700070770077070077000077007077077077007070770070000000000000000000000000
+00000077007077777007777077770077777077000077777077007077770007700077077077777077007077007007770070077700000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+07770007770007770007777077777077007077007070007077007077007077777000770000700007700000000000000000000000000000000000000000000000
+77007077007077007077000000770077007077007070007077007077007000007000700000700000700000070000700000000000000000000000000000000000
+77007077007077007077777000770077007077007070707000770007770007770007700000700000770007770007070000000000000000000000000000000000
+77770077070077770000007000770077007077070077777077007000700077000000700000700000700007000000700000000000000000000000000000000000
+77000007707077007077770000770077770007700077077077007000700077777000770000700007700000000000000000077700000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+77770070707070007007770070007007000007770077077007770007770000700007770077777000777007770000700070077700000000000000000000000000
+77777007070077077077777000700007777077707077777077077007770007770077077070707000700077077007770070770070000000000000000000000000
+77777070707077777070707070007007770077777077777077077077777077777070777077777000700070707077777070770070000000000000000000000000
+77777007070070707077077000700077770077777007770077077007770007070077077070007077700077077007770070770070000000000000000000000000
+77777070707007770007770070007000070007770000700007770007070007770007770077777077700007770000700070077700000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000007070000070007700007700007707007077000000000000000000000000000000000
+77700000000007000007000077070000000000000007000000000000700077700000007000777000770077007007700000007000000000000000000000000000
+07070070070077700077700007000077770000770077770007770077770007070070007007007077070007770077070000070700000000000000000000000000
+77700070070000070007000070770000770077700070070000700007700070777070000000007000770070707007070000007000000000000000000000000000
+77070007000007700070770077070007000000700000700077770070700077707007000000070007077077007007000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+07707000700000070000770007070070000007707007077070700007700007077000770000077070070077077000070000007000000000000000000000000000
+00077007000070077007000007700007000000770007770007770077007007700007007000770070700070700070700070077700000000000000000000000000
+07770007000070707000000070070007007077707077070077700007070070777070007077070007000070770070000070777770000000000000000000000000
+00000000700070007000007000000007007000777007000000700007000000007000007000070007007007077070077070077700000000000000000000000000
+00777000070007007007770007770000770000007000777000077007077000770000070000007007770007700007000000007000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+70770070077007770000777000077077000000000000770077070000070007070000700007700070070070777070700070070770000000000000000000000000
+70707070707077007070070000070000077007770070077007707077077077007070777077000007777007707077007070077000000000000000000000000000
+07077007077070707070707077007000700070007070770070770007707007007077707007707007007070707007770000770700000000000000000000000000
+77077077077070700070770007007070070070000070077007077070707077770070707077007070700070770070700070070700000000000000000000000000
+77000007000007700007000000770070770070000007077007770077000077000077000000770000070000700077000070070000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00770000070000770007070000770070770007770070000000000000000000000000000077770000007000700000007070000700000000000000000000000000
+70000070007077077077770077077077007077707070770000000070700070770070700000007000007077770077770000707000000000000000000000000000
+70777077007000777007070000777007007000770077070007770007770007707007000000707077770070007000700000700000000000000000000000000000
+07007000007007707077077000007077007007070070077070070077070070770070770000770000070000007000700070700770000000000000000000000000
+00070000070000770007000000770007000007777070000000700007000070700077000007700000070007770077777000070000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00070007000000700000770007007077770007007077000077770007077070007007770007777070707007777007000070707000000000000000000000000000
+77777077770077777007007007777000007077777000007000007007707007007070007000070070707000000007000070770070000000000000000000000000
+00070007007000070070007070070000007007007077007000070077000007007077777077777070707077777007770070077700000000000000000000000000
+00770007007007777000070000070000007000007000007000770007000000070070007000070000007000070007007000707000000000000000000000000000
+77070070077000070007700007700077777000770077770077007000777007700000070007700007770007700007000000770000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00070000000077770000700000007000070070007077770007700000707077770007777007000000007007770007000000000070000000000000000000000000
+77777007777000007077770000007007007077770000007070070077770000007000000007000007007077000077770000777700000000000000000000000000
+00070000000007007000007000007070007070000000007070070000700000077007777070007000707007770007007070007000000000000000000000000000
+00070000000000770007770000070070007070000000070000007070707007700000000070077000070077000007077070007000000000000000000000000000
+07700077777077007070707077700070007007777000700000007070707000770077770077707077707000777007000000777770000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+77700077770077770070007000700070000077770077770077770077000000000000000000000000000007700000770070070000000000000000000000000000
+00070000007000000070007070700070000070007070007000007000007000000000000000000000000070000000007000070000000000000000000000000000
+00070007777077777070007070700070007070007000007007777000007070707070770077700077700070000000007070077700000000000000000000000000
+00070000007000007000007070700070070070007000007000007000007000007077070000700007770000000000000000070070000000000000000000000000
+77777077770000770000770070077007700007770000770000770077770007770007000077770077700000000000000000070000000000000000000000000000
 __label__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -1006,171 +1173,4 @@ __label__
 77707070000007000700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 07007770070077707770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
-
-__gff__
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e0e00f0f0f0000000000000000000f00e0e00f00080000000000000000000f0f0000000a090001000f0f0f0f0f0f0f0f00000f0f00000f0f0f0f0f0f0f000f0f
-2f2f0f0f0f0000000010ff00000040002f2f040f04080000101010000000000008080000000000000f0f0f0f00000000000000000a09000f0f0f0f0f0f008fff0000000000000000000000000000000000000000000000000808ffffffff000000000000000000000000ffff00000000000000000008000000000000000000ff
-__map__
-00000000404140410000495e5f4900000049000000004900aaaaaaaab6b6b6b65858454547475858585959585a58585a5b5b5b5b7e7e7e7e86868686a2a2a2a2a29f9fa20000979795959500878787878888888800890089a6a7a7a6009c8b9b8b9b8b9b8c8d9d8caaab0000a9aaaaab4041404100000000008a8a8a8a8a8a00
-00000000505150510049596e6f59490049664949494966495b5b5b5bb6b6b6b6584545464647475859595959585959585b5b5b5b7e7e7e7eb0a2a2b0a0a0a0a0a29f9fa20097959595959500979797970000000000998999a75051a7009c8b8b9b8b8b8b8c9d8d8c5bbcaaaabd5b5bb800000000000000008a8a9a9a9a9a8a8a
-000000004041404149596c4e7f6d59495e4e6b7a7a6a7f5f5b5b5b5bb6b6b6b6454546464646474759595959585959585b5b5b5b7e7e7e7eb0a2a2b0a0a0a0a0a29f9fa200959595955b5b95979797970000000000899989a74041a7009c8b9b8b9b8b9b8c8d8d8cad5b5b5b5b5b5b5b41404140000000008a9a9a9a9a9a9a8a
-0000000050515051686a4e7f4e7f6b696e4e7f4e7f4e7f6f5b5b5b5bb6b6b6b64546464646464647585959585a58585a5b5b5b5b7e7e7e7e86868686a2a2a2a2a29f9fa29595959595979795979797970000000089998999a6a7a7a6009c9b8b8b8b9b8b8c9d8d8cb9baadacbabaad5b0000000000000000989a9a9a9a9a9a98
-ffffffff4e7f4e7f4e7f4e7f5b5b5b5b0000008284000000005557000000000057000055565656565a5556565656575a7d7d7d7d4f4f4f4fb09f979797979fb0000000959595959585878797954646475b5b505b99899989b7b7b7b700000000008f8f7d0000000000a9bdbcab00b9ad0000650000000000989a9a9a9a9a9a98
-ffffffff7f4e7f4e434343435b5b5b5b0000829383840000005557000000000057000055565656565a5556565656575a7d7d7d7d4f4f4f4fb09f979797979fb0000095959595958587978587979547474141404189998999000000000000000000b0b07da1000000aabd5b5bb80000b96500746500000000989a9a9a9a9a9a98
-ffffffff4e7f4e7f525252525b5b5b5b00829383938384000055570000b4b50057000055565656565a5556565656575a7d7d7d7d4f4f4f4fb09f979797979fb0009695969595858797979785879795475b5b505b99899989000000000000000000b0b07da10000005b5b5b5bb8000000746574744848484898989a9a9a9a9898
-ffffffff7f4e7f4e52525252babababa829383938393838400555700b49797b557000055565656565a5556565656575a7d7d7d7d4f4f4f4fb09f979797979fb0959595959585879797979797858797955b5b505b899989990000000095959595009595b6b6000000babaad5bbcab000074747474634343640098989898989800
-687a7b6a5959686a6b6959594e6b7b699393839383939393005a484848485a0000000000000000005051505195959500000000636400000097979797959595958596859685878686868686868685870000000000b7b7b7b7b7b7b7b7000049b4b5490000b10000000000b9ad5bbcaaaa7474747472727272be5b5b008e8f8f00
-4e7f7f42686a7f7f7f7f6b69447f7f4e00939383938393005a4859595959485a000000000000000050515051b7b7b700000063979764000097979797959595958596859685878686868686868685870000825484b7b7b7b7b7b7b7b70049b49797b54900b1000000000000a85b5b5b5b7474747452525252bf5b5b009e8f9f00
-434442527f4243525243447f5244424300939393839393004859595959595948005a484848485a0050515051b7b7b70000639785869764009797979795959595859685968587868686868686868587000093869300000000b7b7b7b749b497979797b549b1000000ab0000a85b5bacba7474747452525252bf5b5b009e8f9f00
-43525252435252525252524352525243000093939393000058595959595959585a4859595959485a505150519797970063975b96965b97649797979795959595859685968587868686868686868587000000000000000000b7b7b7b7b4979797979797b5b1000000bcab00b9adacbb007474747462626262bf5b5b00aeafaf00
-000082830000008284000000838400005662566252525252585959595959595800000095959595979795959595000000960000969600009696868696a2a2a2a285968596858787875b5b5b858787870000868600a3b3a3a35b5b5b5b979797a4a5979797545454545bbcaaaabdbcaaab7474747473737373005b5bbf80810000
-828393930082849393828400939383846256625652525252585959595959595800009595959597535397959595950000960000969686868696868696a2a2a2a200965896585858585b5b5b585896580000a2a200a3a3a3b3000000009797a4a2a2a5979700000000ad5b5b5b5b5b5bbc7474757452525252005b5bbf90910000
-839383938283939393939384828393835662566252525252585959595959595800959595959753969653979595959500968686869600009696868696a2a2a2a28596859685878686868686868685870000a2a200a3b3a3a30000000097a4a3a2a2b3a59700000000a85b5bacbabaad5b7574007552525252005b5bbf00000000
-9383939383939384829383939393839362566256525252525a5859595959585a95959595975396969696539795959595960000965454545454545454a2a2a2a28596859685878686868686868685870000868600a3a3a3b300000000a4a3b3a3b3a3b3a500000000b9bababb0000b9ba0075000062626262005b5bbf00000000
-b6b6b6b605010082808000805d557716e8d2d2d2d2d2d2d2d2d2d2d2d2d2d2e9d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d259585959595959595959594849494959d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d283938393929492948282848284828484787878787878787878787878787878787e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e
-aaaaaaaa0d0c010181010081676d671dd9eadadbdcdddadbdcdddadbdcddebd8d2d2d2d2d2d2d2d2d2d2d26869d2d2d259594849494949494959484958585848d2d2d2d26061d2d2d2d2604f61d2d2d2938393839492949294828482849a93844d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d
-a3a3a3a30e0e02028282818266d33615d2deec53535353535353535353eddfd2d2d2d2d2d2d2d2d2d2d25e4e7f5fd2d248484958585858585859595858585858d2d2d2604f4f61d2d2604f4f71d2d2d2839383939294929482839383938483935b5b6c6d5b5b5b5b5b5b5b5b5b5b5b5b68696869686968696869686968696869
-5b5b5b5b0f0b038b88048183c6cd6b1dd2ee535353535353535353535353efd2d2d2d2d266d2d2d2d2d26e5b6c6fd2d258595959585858585858594858585858d2d2d2704f4f71d2604f4f71d2d2d2d2938393839492949294938393839393935b4c4d4d5c5b5b5b5b5b5e5f5b68695b69686968696869686968696869686968
-535353530f09040404828284d2119a24d2fe535353535353535353535353ffd2d2d2686a7f6b69d2686a4e6d5e4e6b6958595959595858585959595949494958d2d2d2d2704f61604f4f4f61d2d2606193828482849a829383939393939383935b5b5b5b5b5b5b5b5b5b6e6f5b5b5b5b68696869686968696869686968696869
-53535353060505858505858567fde869d2ce535353535353535353535353cfd2d25e7f6b696c7f6b69d2d2d2d2d2d2d259595959595959595959595959595949d2d2d2d2d2704f4f4f4f4f71d2604f71828393839384938393938393939393935b5b5b5b5b5b5b5b4b4c4d4d5c5d5b5b69686968696869686968696869686968
-babababa0f060686860d0d8667f6672dd2de535353535353535353535353dfd268766d5e4f6b695e7f7769d2d2d2d2d246494946464649494949464646464646d2d2d2d2604f7f4e4e4e7f61604f71d293938393839393939383939382849a827a7b7c7b7a7b7c7b7a7b7c7b7a7b7c7b7a7b7c7b7a7b7c7b7a7b7c7b7a7b7c7b
-b6b6b6b60f0707070f8f060f5565cd04d2ee535353535353535353535353efd2595959595959595959595959595959594949494949494949494949494949494988888888888888888888888888888888939393939393939393939393939393937d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d
-a8b25b5b0f0e08040404028800000000d2fe989898989898989898989898ffd2595959595959595959595959595959595ae05ae05a565ae05a565a5a5a56565ad2d24b4c4d4d4d4d4d4d4d5c5dd2d2d2d2d2aca9a9aaaaaba9bdbcaaaaaaaaabd2d2d2d2d2d226d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2
-a8b25b5b0f0f098e8e8e048900000000d2ce989898989898989898989898cfd2494949494949494949494949494949495ae05ae05a565ae05a565a5a5a56565a4b4c5b5b5b5b5b5b5b5b5b5b5b5cd2d2d2aca941a85b5bb8a85b5b5b5b5b5bb8676767676767d2d2d2d2d226d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2
-a8b25b5b0f0f0a0a0a878a8a00000000d2de989898989898989898989898dfd2494949494949494949494949494949495ae05ae05a565ae05a565a5a5a56565a4b4c5b5b5b5b5b5b5b5b5b5b5b5b5c5daca9505ba85b5bb8a85b5b5b5b5b5bb84a534a4a53536767676767d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2
-a8b25b5b0f0f0b8a89838c8b00000000d2eefc98989898989898989898fdefd2888888888888888888888888888888885ae05ae05a565ae05a565a5a5a56565a5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5ba9bd505bb9bababbb9bababbb9adacbb538a5353534a534a4a4a536767676767d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2
-5b5353b80f0d0c8f0902018c00000000d2facacbcccdcacbcccdcacbcccdfbd2888888888888888888888888888888885ae05ae05a565ae05a565a5a5a56565a5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5ba9aaaaab5b5b50bbaaaba9aaa9bdbcab4a53534a4a534a4a53534a534a4a4a53d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2
-5b5353b80f060d0d8d8d8c8d00000000d9d8d9d8d9d8d9d8d9d8d9d8d9d8d9d8888888888888888888888888888888885ae05ae05a565ae05a565a5a5a56565a5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5bbd5b5bbc4141bbbd5b5b5b5ba85b5bb89a9a9a9a4a534a534a4a4a53538a534ad2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2
-5b5353b80f0f0e080808898e00000000d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d288888888888888888888888888888888585858585858585858585858585858585b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5bad5b5bacacbbbdd2ad5b5baca85b5bb8d226d2d29a9a9a9a9a9a534a4a534a53d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2
-5b5353b80f0f0f0f0e0f878f00000000f8d2d2d2d2d2d2d2d2d2d2d2d2d2d2f99a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a5858585858585858585858585858585879797979797979797979797979797979b9bababbbbbdd2d2b9bababbb9adacbbd2d2d2d2d2d2d2d2d2d29a9a9a9a9a9ad2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2
-__sfx__
-01011020356303563035630356303562035620356103561029610296101d6101d6101161011610116101161011610116101161011610056100561005610056100561005610056100561005610056100561005610
-0101000015070150701607016070170701707018070180701807018070180701807017070170701807018070190701907018070180701707017070180701807019070190701a0701a0701b0701b0701c0701b070
-010108203030024300243002430024300243000000018330183401835018350183501835018350183501835018350183501835018350183401834018340183401834018340183401834018340183401834018340
-0104000c1807018070000000000000000180001807018070000001807018070180001800018000180001800018000180001800018000000000000000000000000000000000000000000000000000000000000000
-010108201832018440184701835018360184701847018470184701846018450184601845018440184701847018470184701847018470184701847018470184701847018470184701847018470184701847018470
-0106002000670006500065000630006300063000620006102b6351c6252b6351c6251766017620176201761017660176201762017610176601762017620176102b6351c625176601762017620176102b6351c625
-010c00001d4401d4101b4401a440184401841016440154401d4401d4101b4401a440184401841016440154401345013420134551345515450154201545515455164501642016455164551b4501b4201b4551b455
-0106002000670006500065000630006300063000620006102b6351c6252b6351c6252b6351c6252b6351c62517660176201762017610176601762017620176102b6351c6252b6001c6002b6351c6252b6351c625
-011800201837218312133721f3521f3122137221312213121837218312133721f3521f3122137221312213121837218312133721f3521f3122137223372243721e3721e3121c3721a3721a3521a3521a3121a312
-010c00080e3320e3121333213312153321531213332133121130016300183000e3001130016300183000e3001130016300183000e30010300103001730010300103001030010300103001030010300103000c300
-011800001506215062150621506215062150621506215062130621306213062130621306213062130621306212062120621206212062120621206212062120621006210062100621006210062100621006210062
-010600203c615186150c615106053c615186150c6150000500005186051a605106053c615186150c615000051c640106201061010610046100000500005000053c615186150c615106053c615186150c61500005
-010c00201c3601c3221c3501c3501c3221c3121c3501c3121e3601e3221e3501e3501e3221e3121e3501e3121f3601f3221f3501f3501f3221f3121f3501f31223352233121f3521f31221352213121e3521e312
-010c0020000021ca621ca221ca521ca521ca221ca121ca521ca221ea621ea221ea521ea521ea221ea121ea521ea221fa621fa221fa521fa521fa221fa121fa521fa1223a5223a121fa521fa1221a5221a121ea52
-010c00201206012060120601206012060000001206012060130601306013060130601306000000130601306015060000001506015060150600000013060130601206012060120601206010060100601006010060
-010c0000213502133521312213121e3501e3551e3121e31221350213351c3521c3521c3521c3551c3121c312213502133521312213121e3501e3551e3121e31221350213351c3521c3521c3521c3551c3121c312
-010c000000a0021a6221a5221a3221a221ea621ea521ea321ea2221a6221a521ca621ca521ca521ca521ca321ca2221a6221a5221a3221a221ea621ea521ea321ea2221a6221a521ca621ca521ca521ca521ca32
-010c00000c0600c060100601006010060100601006010060120601206012060120601200012000120601206012060000001205012060100601006010060100601206012060100601006015060150601306013060
-011800001f3522335224352243122635224352243122835228352283522833228312283222831228312283121e3522135223352233122435223352233121e3521e3521e3521e3321e3121e3221e3121e3121e312
-010c00201a3251e3251f325183251a3251e3251f325183251a3151e3151f315183151a3151e3151f315183151a3251e3251f325183251a3251e3251f325183251a3151e3151f315183151a3151e3151f31518315
-011800001206012060120601206013060130601306013060150601506013000130601506015060170601706010060100601006010060120601206012060120601306013060170601706015060150601306013060
-010c0000213702135021312213121e3701e312213702135021312213121f3701f31221370213122337023312263502631226312263122637026312283702835028312283122a3702a3122b3702b3122d3702d312
-010c00002a3752a3252d3752d3252b3752b3252a3752a3252d3752d3252d31524005273752732527315240052a3752a3252b3752b3252b3152400528375283652835528325283252832528325283152831528315
-010c000000a0000a022aa522aa322da522da322ba522ba322aa522aa322da522da322da222da1227a5227a3227a2227a122aa522aa322ba522ba322ba222ba1228a5228a4228a3228a3228a2228a2228a1228a12
-010c000018122181221912219122181221812219122191221c1221c1221c1221c122151221512215122151221b1221b1221b1221b1221b1221b12219122191221912219122191221912219122191221912219122
-0109001021345213101f3052131021345213101f3451f3101d3451d31018345183101d30518310183451831000005000050000500005000050000500005000050000500005000050000500005000050000500005
-011200002b3652f3322f310303652f3322f3202f3102f3102d365293322d350293202d322293202d3102931026365293322d3102932026355293222d310293102d355293322d310293102f3652b3422f3102b320
-0112000017052170520000217052000021705217052170521505215052000021505200002150521705215052110521105200002110521305211002130521305215052110520e052170521805215052130521c052
-0112000026355293222d3402d31026355293222b3402b31026355293222d3402931026355293222b3402931024355273222b3402b3102435527322293402931024355273222b3402731024355273222934027310
-011200000000026052290522d0502d00026052290522b0502b00026052290522d0502900026052290522b0502900024052270522b0502b0002405227052290502900024052270522b05027000240522705229050
-011200001d6451161511610116103581035810298201d8101d6451161511610116103581035810298201d8101d6451161511610116103581035810298201d8101d6451161511610116101d830298201d83029830
-011200001f3651f4221d3651b355183221d3551d41221345214202141021410214102141221412214122141221412214122141221412233452341221365234322437524432244102441023375234422342023410
-011200001305013050000001305000000130500000013050150501505000000150500000015050000001505018050180500000018050000001805000000180501505015050000001505000000150500000015050
-011200001305013050159001305015900130500997013050150501505018900150501f000150500c9701505018050180501c000180501f000180500f970180501b0501b0501f0001b050220001b050139701b050
-01120000213752142223375234222437524442244202441024420244102441024410244152441027355274122b3652b4222d3752f3352d3652d4222d4102d4102d4102d4102d4152d4102b3552b4122835528412
-0112000029355274222b330274102b3102741029312274102b365284322d340284202d320284102b3122841029375274322b350274202b3202742029312274102d375294322f350294202f320294202d31229410
-011200001d8301d8251d800298101d800298101d800298101d8351d8102982029810298101d8301d810118301d8301d8251d800298101d800298101d800298101d8251d8202982529810058651d835058501d835
-010600000c4500f4411145013461154701647117460184511b4501b4521b4221b422184501845218422184221d4711d4511d4511d4511d4221d4121d4221d43216440164401b4501b4501a4601a4601d4711d471
-010600201f4301f4102243022410244302441027430274101f4301f4102243022410244302441027430274101f4301f4102243022410244302441027430274101f4301f410224302241024430244102743027410
-010c000013b7013b7013b7013b7013b7013b7013b7013b7011b7011b7011b7011b7011b7011b7011b7011b700fb700fb700fb700fb700fb700fb700fb700fb700eb700eb700eb700eb700eb700eb700eb700eb70
-000c00000cb700cb700cb700cb700cb700cb700cb700cb700fb700fb700fb700fb700fb700fb700fb700fb7011b7011b7011b7011b7011b7011b7011b7011b7013b7013b7013b7013b7013b7013b7013b7013b70
-01060020000001fa401fa2022a4022a2024a4024a2027a4027a201fa401fa2022a4022a2024a4024a2027a4027a201fa401fa2022a4022a2024a4024a2027a4027a201fa401fa2022a4022a2024a4024a2027a40
-010c000013c7013c4213c2213c121bc701bc421bc421bc1213c7013c4213c4213c1215c7016c7018c701bc711dc701dc421dc421dc121fc7021c7022c7023c7024c7024c4222c7022c4127c7127c4227c4227c22
-010c000024c5124c4124c4024c4024c4224c3224c3224c2224c3224c3224c3224c3224c3224c2224c2224c1224c2224c2224c2224c2224c2224c2224c1224c122244022412214401f4401d4401d4121b44018440
-010c00001fc701fc421fc421fc221fc321fc1222c7021c701dc701dc421dc221dc121ac701ac421ac421ac1221470224502445026450214302241024410264102145022430244302643021420224102441026410
-010c00001f4301f41022430214301d4301d4101a430184301f4401f41022440214401d4401d4101a440184401f4501f41022450214501d4501d4101a450184501f4601f42022460214601d4601d4201a46018460
-010c00001d4701d4401d4101d4101d4701d4201d4751d475224702244022410224102247022420224752247513c7013c2013c7513c7518c7018c2018c7518c7516c7016c2016c7516c751bc701bc201bc751bc75
-010c00000fb700fb700fb700fb700fb700f070000000fb7011b7011b7011b7011b7011b70110700000011b700fb700fb700fb700fb700fb700f070030000fb700cb700cb700cb700cb700cb700c070000000cb70
-0105202024456273442a4552d352274342a3252d432303342a4352d32230434333252d4323031333422365123051333512365133c5123052333522365333c5223051333512365133c5123051333512365133c512
-010200001a45019461174711337115371173611a3611d35121351283412f341333313533136321373213731121401173201333115321173211a3111d31121311283112f311003000030000300003000030000300
-01031c2024441283513707100000344113b021000000000020772317713c7712c77222771307713c771187710c4710f35110411123110f4411c3211e4112731107671116611a6611f6201d651336212c6311d651
-010220202937033470393603a4501e330104201a3202c430383600a360244701e4600d3500731018310203102b310133401d360243702a37030340263402d34033350373603932032330373203b3103e3103c510
-010300002043025460293602a4501f470253702a35028370243702335028450294602f370313703237036370393703c4703c4203c3203035034350383503c3103c3103c4203042034320373103c3103c3103c310
-01010000183721c332214623042234442394123040226402183321c3122142200000344123d40211402164021831200000214120000025402274022b4022c4022e40231402334023540236402384020000000000
-01030000006500c67028640347733a7713b7713c7733b77139771357712d77128771207712f771347713c7711f4501f3702c3403a2101f4501f3702c3403a2101f4501f3702c3403a2101f4501f3702c3403a210
-0102202012640116301a6501f6601435010360123401634019330276102c6202c6403165034630273103036034360373603a3503b350273203032034320373203a3103b310273103031034310373103a3003b300
-00010000250502005015050160501705018050190501a0501b0501c0501d0501e0501f05020050210501e05015010160101701018010190101a0101b0101c0101d0101e0101f01020010210101f0101d0101b010
-01060000323732c3731e3332033325353293532c3532932324323283232b323313132d31331313373133c313323432c3431e3232032325333293332c3332932324323283232b323313132d31331313373133c313
-010300001343305650026601342329620336302c610116102345305660026702343329630336402c620116102746305640026502744329610336202c610116003747305610026203b45329600000001b41300000
-0103000026371274523a2213623227351294323b21137222284312a2123740138211294120000100001000012b4751f420383552c310183250031531315193152b4351f415383152031518315003150000100001
-010600003c47334553374232e5231d413225532b433345133c41334513374332e5231d413225132b313345032b42334513374132e5031d4032b4032b413345131d40334503374133040329403225130040300403
-0103000021472183531b2731343321353242231b4531f313152720c4331b3731f223154430c3130f24313413153320c2230f43313323152130c4130f31313203154120c3130f2130c4623c4323c6250f4133c615
-010100000007204072070720c072180721c0721f072240720e42212422154221a422263222a3222d322323221044214442174421c442283422c3422f342343421141215412184121d412293122d3123031235312
-010218203f4733b4733337337463324332d3330133304433213330445305373074732637307453183533f453183431f3333c45320353253433943325333283433c433283332b323384132b3232d323344132d313
-__music__
-01 09080a0b
-00 09080a0b
-00 09080a0b
-00 09080a0b
-00 1312140b
-00 1312140b
-00 0d0c0e0b
-00 0d0c0e0b
-00 100f110b
-00 0d0c0e0b
-02 09150a0b
-01 191a1b1e
-00 191a1b1e
-00 191c1d1e
-00 191c1d1e
-00 191a1b24
-00 191a1b24
-00 191f2024
-00 19222024
-00 191f2024
-00 19232124
-00 191f2024
-00 19222024
-00 191f2024
-02 1923211e
-00 65254040
-01 29262807
-00 29262807
-00 29262807
-00 29262805
-00 262a2807
-00 262c2807
-00 262a2807
-00 262c2807
-00 262a2807
-00 262b2807
-00 262a2807
-00 262c2807
-00 262a2807
-00 262c2807
-00 262a2807
-00 262b2807
-00 262e2f05
-00 262e2f05
-00 262c2807
-00 262e2f05
-00 262e2f05
-00 262b2807
-00 29262807
-00 29262805
-00 292d2705
-00 292d2705
-00 292d2705
-02 29062807
-01 29080945
-00 29080945
-00 13120907
-02 13120907
-01 29002713
-00 29002713
-00 29002f13
-00 29002f13
-02 29002813
-04 17161844
 
