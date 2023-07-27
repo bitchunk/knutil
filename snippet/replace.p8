@@ -1,22 +1,33 @@
 pico-8 cartridge // http://www.pico-8.com
-version 36
+version 41
 __lua__
 --replace [perform string substitutions]
---v0.1
+--v0.2
 --@shiftalow / bitchunk
 
-function replace(s,f,r)
+--[[
+	- replace      	     -- replace a string.
+	- @param  string s   -- string to be replaced.
+	- @param  string f   -- search words.
+	- @param  string r   -- word(s) to replace the searched word(s).
+	- @param  string ... -- next pair of words to search and replace.
+	- @return string     -- resulting string of replacement.
+	- @description
+	-- 
+]]--
+
+function replace(s,f,r,...)
 local a,i='',1
-while i<=#s do
+while s[i] do
 if sub(s,i,i+#f-1)~=f then
-a..=sub(s,i,i)
+a..=s[i]
 i+=1
 else
 a..=r or ''
 i+=#f
 end
 end
-return a
+return ... and replace(a,...) or a
 end
 
 ----
@@ -38,26 +49,43 @@ local str="you got a banana."
 						.."you found an apple."
 						.."you ate an orange."
 
-str
-=replace(
-		replace(
-			replace(
-				replace(str
-					,"banana","\fa[bananaノ\vtノ]\f6"
-				)
-				,"apple","\f8[apple●\vvイ]\f6"
-			)
-			,"orange","\f9[orangeう\vzL]\f6"
-		)
-		,".",".\n"
-	)
+str=replace(
+	str
+	,"banana","\fa[bananaノ\vtノ]\f6"
+	,"apple","\f8[apple●\vvイ]\f6"
+	,"orange","\f9[orangeう\vzL]\f6"
+	,".",".\n"
+)
 ?str
 
 -->8
 --[[
 update history
-v0.1
-	*first release
+**v0.2**
+- multiple substitutions can be made with a single function call.
+
+**v0.1**
+- first release
+]]--
+-->8
+--other versions of code
+--[[
+
+-- replace of only one pair
+function replace(s,f,r)
+local a,i='',1
+while s[i] do
+if sub(s,i,i+#f-1)~=f then
+a..=s[i]
+i+=1
+else
+a..=r or ''
+i+=#f
+end
+end
+return a
+end
+
 ]]--
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
