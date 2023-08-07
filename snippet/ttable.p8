@@ -1,12 +1,21 @@
 pico-8 cartridge // http://www.pico-8.com
-version 36
+version 41
 __lua__
 --ttable [if the argument is a table, the table is returned.]
---v0.1
+--v0.2
 --@shiftalow / bitchunk
 
+--[[
+    - ttable
+    - @param  any p -- check if it is a table.
+    - @return any   -- if it is a table, return the argument, otherwise return false.
+    - @description
+    -- determines the type of a variable or argument of indeterminate type.
+    -- for example, when switching the processing method between string and table.
+]]--
+
 function ttable(p)
-	return type(p)=='table' and p
+	return count(p) and p
 end
 
 ----
@@ -37,8 +46,10 @@ goto て
 -->8
 --[[
 update history
-v0.1
-	*first release
+**v0.2**
+- table checking with count.
+**v0.1**
+- first release.
 ]]--
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
