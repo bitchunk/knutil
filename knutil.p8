@@ -5,8 +5,8 @@ __lua__
 --@shiftalow / bitchunk
 version='v0.14.0'
 --set1:basic
-function amid(c,a)
-return mid(c,a,-a)
+function amid(...)
+	return mid(-...,...)
 end
 
 function bpack(w,s,b,...)
@@ -42,27 +42,17 @@ end
 
 function ecpalt(p)
 	palt()
-	for i,v in pairs(p) do
+	tmap(p,function(v,i)
 		palt(i,v==0)
-	end
+	end)
 end
-
---function ecpalt(p)
---for i,v in pairs(p) do
---if v==0 then
---palt(i,true)
---end
---end
---end
 
 function htd(b,n)
-local a,t={},msplit(b,n or 2)
-if t then
-tmap(t,function(v)
-add(a,tonum('0x'..v))
-end)
-return a
-end
+	local a={}
+	foreach(msplit(b,n or 2),function(v)
+		add(a,tonum('0x'..v))
+	end)
+	return a
 end
 
 function htbl(ht,c)
@@ -309,13 +299,14 @@ return o
 end)
 end
 
-function cmdscenes(b,p,...)
+function scmd(b,p,...)
 return tmap(msplit(replace(b,"\t",""),"\n",' '),function(v)
 local s,m,f,d=unpack(v)
 return _scal[s] and _scal[s][m](f,tonum(d),p or {}) or false
 end)
-,... and cmdscenes(...)
+,... and scmd(...)
 end
+cmdscenes=scmd
 
 function transition(v)
  v.tra()
@@ -360,16 +351,18 @@ end
 
 --dbg
 function dbg(...)
-if ...~=nil then
-add(_dbgv,{...})
-else
-tmap(_dbgv,function(t,y)
-oprint(join(' ',unpack(ttable(t) or {t})),0,121+(y-#_dbgv)*6,5,7)
-end)
-_dbgv={}
+	local p,d={},{...}
+	for i=1,#d do
+		if add(p,tostr(d[i]))=='d?' then
+			tmap(_dbgv,function(v,i)
+				oprint(join(' ',unpack(v)),0,128-i*6,5,7)
+			end)
+			_dbgv,p={}
+		end
+	end
+	add(_dbgv,p,1)
 end
-end
-dbg()
+dbg'd?'
 -->8
 --init vars
 function _init()
@@ -383,7 +376,7 @@ function _init()
 	scenes=mkscenes(msplit'library items stack transition push shift unshift remove')
 	keycheck=mkscenes{'keycheck'}
 	cls()
-	cmdscenes([[
+	scmd([[
 		keycheck st key_order 0
 		stack st stacked 0
 		items st draw_items 0
@@ -397,7 +390,7 @@ poke(0x5f5c,5,1)
 	document_x+=tonum(btnp(➡️))-tonum(btnp(⬅️))
 	document_y+=tonum(btnp(⬇️))-tonum(btnp(⬆️))
 	if btnp(🅾️) or btnp(❎) then
-		cmdscenes[[
+		scmd[[
 			keycheck st key_library 0
 		]]
 	end
@@ -415,7 +408,7 @@ poke(0x5f5c,10,2)
 		document_x,document_y=0,0
 	end
 	if btnp(🅾️) or btnp(❎) then
-		cmdscenes[[
+		scmd[[
 			keycheck st key_document 0
 		]]
 	end
@@ -491,17 +484,17 @@ function key_order(o)
 	if btnp(🅾️) then
 		({
 			function()
-				cmdscenes[[
+				scmd[[
 					push ps push_order 60
 				]]
 				end,
 			function()
-				cmdscenes[[
+				scmd[[
 					unshift ps unshift_order 60
 				]]
 			end,
 			function()
-				cmdscenes[[
+				scmd[[
 					push cl
 					unshift cl
 					shift cl
@@ -543,7 +536,7 @@ function push_order(o)
 	?'<ps> push order',x+8,o.rect.y+5,4
 	
 	if o.lst then
-		cmdscenes('shift ps shift_order 30',o)
+		scmd('shift ps shift_order 30',o)
 	end
 end
 
@@ -562,11 +555,11 @@ function unshift_order(o)
 	)
 	
 	if o.lst then
-		local s=cmdscenes'transition fi transition_order'[1]
+		local s=scmd'transition fi transition_order'[1]
 		if s then
 			s.prm.res=s.cnt
 		end
-		cmdscenes('transition us transition_order 200',o)
+		scmd('transition us transition_order 200',o)
 	end
 end
 
@@ -578,7 +571,7 @@ function shift_order(o)
 	print("<sh> shift order "..o.prm.id,rc.x+8,rc.y+o.rate'5 2',4)
 	
 	if o.lst then
-		cmdscenes('transition ps transition_order 200',o.prm)
+		scmd('transition ps transition_order 200',o.prm)
 	end
 end
 
@@ -640,7 +633,7 @@ function transition_order(o)
 	end)
 	
 	if o.lst then
-		cmdscenes([[
+		scmd([[
 			remove ps remove_order 120
 		]],o.prm)
 	end
@@ -648,7 +641,7 @@ end
 
 function remove_order(o)
 	if o.fst then
-		cmdscenes[[
+		scmd[[
 			transition us nil 120
 			unshift us nil 120
 		]]
@@ -675,7 +668,7 @@ function _draw()
 	cls()
 	foreach(scenes,transition)
 	dbg(version)
-	dbg()
+	dbg'd?'
 end
 -->8
 --htbl examples
@@ -726,7 +719,7 @@ tokencost{
 ]])
 
 menuitem(5,'scene order dg',function()
-cmdscenes([[
+scmd([[
 	keycheck st key_order 0
 	stack st stacked 0
 	items st draw_items 0
@@ -795,7 +788,7 @@ exrect	generate rect object with extended functionality.	きのうかくちょ�
 mkscenes	create a multitasking scene object.	マルチタスクの シ-ンオフ゛シ゛▤クトを さくせいします。	mkscenes( keys )\n- @param  table keys  -- scene name table.\n- @return table       -- scene object table for scanning.	
 dbg	outputs values to the screen regardless of output timing.	しゅつりょくタイミンク゛かんけいなして゛ あたいを か゛めんしゅつりょく します。	dbg(...)\n- @param  any ...  -- value to be examined (other than table)	
 ]],"\n","\t")
-cmdscenes([[
+scmd([[
 	library st draw_library 0
 	keycheck st key_library 0
 	items cl
@@ -813,13 +806,25 @@ end
 --[[
 update history
 **v0.14.0**
+- dbg:support for nil
+- amid:change the order of arguments.
+- htd:change from tmap to foreach.
+- ecpalt:be sure to perform initialization of the transparency settings.
+- htbl:token cost cut, note second return value.
+- dmp:added _update_buttons().
+- tmap:support for false replacements.
+- ttable:use count() to determine.
+- mkpal:arguments before and after the change. support for multiple palette sets.
+- replace:support for multiple replacements.
 - oprint:inherit outline() and rename function.
 - msplit:wrapper for split() is eliminated and renamed.
-- tonorm:token cost cutting.
+- scene:
+ - cmdscenes:changed to scmd. for a while cmdscenes will remain for compatibility.
 
 - [deleted]:
  - toc
  - tonorm
+ - ecmkpal
 
 **v0.13.1**
 - corrected commented out vdmp to dmp.
