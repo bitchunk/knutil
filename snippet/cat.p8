@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 35
+version 41
 __lua__
 --cat [cat() concatenates two or more tables]
 --v0.1
@@ -17,19 +17,7 @@ end
 end)
 return f
 end
---
---function cat(f,...)
---for i,s in pairs({...}) do
---for k,v in pairs(s) do
---if tonum(k) then
---add(f,v)
---else
---f[k]=v
---end
---end
---end
---return f
---end
+
 
 cls()
 local s=":concat tables:\n"
