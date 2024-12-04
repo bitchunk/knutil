@@ -23,16 +23,16 @@ INDEXES: 生成した順にシーンを実行するために必要です。
 
 ### シーンにORDERを入力する ( CMDSCENES )
 ```
-CMDSCENES([[
-[SCENE NAME] [COMMAND] [FUNCTION NAME] [DURATION FRAME]
-[SCENE NAME] [COMMAND] [FUNCTION NAME] [DURATION FRAME]
+SCMD([[
+	[SCENE NAME] [COMMAND] [FUNCTION NAME] [DURATION FRAME]
+	[SCENE NAME] [COMMAND] [FUNCTION NAME] [DURATION FRAME]
 ...
 ]])
 ```
 - [SCENE NAME]     　: MKSCENESで生成した名前を指定します。
 - [COMMAND]      　　  :下記のORDER COMMANDSを指定します。
 - [FUNCTION NAME]  : グローバル関数の名前を指定します。
-- [DURATION FRAME] : 持続するフレーム数を指定します。0で指定すると自動的に終了しません。
+- [DURATION FRAME] : 持続するフレーム数を指定します。0を指定するとORDERは持続し続けます。
 
 
 ## ORDER COMMANDS
@@ -103,73 +103,109 @@ END
 ## 各シーンを実行する
 ```
 # _UPDATE()、_DRAW()関数の中で
-FOR V IN ALL(INDEXES)
-	SCENES[V].TRA()
-END
+FOREACH(SCENES,TRANSITION)
 ```
 
 ## ORDER関数
 ```
-FUNCTION [FUNCTION NAME] ( ORDER )
+FUNCTION [FUNCTION NAME] ()
 	CLS()
-	IF ORDER.FST THEN
+	IF _FST THEN
 		STOP"IT'S FIRST!"
 	END
-	IF ORDER.LST THEN
+	IF _LST THEN
 		STOP"IT'S LAST!"
 	END
-	PRINT('COUNT: '..ORDER.CNT..'/'..ORDER.DUR)
+	PRINT('COUNT: '.._CNT..'/'.._DUR)
 END
 ```
 
 ## ORDERのプロパティ
-### プロパティ：FST / LST
-ORDER.FST : 最初の実行時にTRUE、それ以外はFALSE
-ORDER.LST : 最後の実行時にTRUE、それ以外はFALSE
+### _FST / _LST
+_FST : 最初の実行時にTRUE、それ以外はFALSE
+_LST : 最後の実行時にTRUE、それ以外はFALSE
 
-### プロパティ：CNT / DUR
-ORDER.CNT : 現在走っているORDERの実行カウント
-ORDER.DUR : 現在走っているORDERの終了予定のカウント
+### _CNT / _DUR
+_CNT : 現在走っているORDERの実行カウント
+_DUR : 現在走っているORDERの終了予定のカウント
 
-### プロパティ：PRM
-CMDSCENESの２番目の引数で指定した値が入っています。
+### _PRM
+SCMD()の２番目の引数で指定した値が入っています。
 
-### RATE
-座標などで、開始から終了を指定するときに使います。
+### _RATE
+開始から終了の座標などを算出するときに使います。
 ```
-ORDER.rate('[start] [end]', duration, count )
+_RATE('[start] [end]', duration, count )
 ```
-durationとcountはデフォルトの場合、CMDSCENESで指定したものが使われます。
+durationとcountはデフォルトの場合、SCMD()で指定したものが使われます。
 
 ### オーダーの強制終了
-`return 1`をするか、`ORDER.rm = 1`をする。
+`return 1`をするか、`_RM = 1`をする。
 
-## シーン以外の機能
-このライブラリの中で私が既に投稿したものがあります。
-- HTBL
-- VDMP
+## SCENE以外の関数
+SET 1: Basic Library
+★ Libraries for frequent use and quick implementation
 
-説明がされていない関数（別の機会に投稿します）
-- TONORM
-- TOHEX
-- TTOH
-- HTOT
-- REPLACE
-- EXRECT(RFMT)
-- TOC
-- JOIN
-- SPLIT(wrapper function)
-- HTD
-- SLICE
-- CAT
-- COMB
-- TBFILL
-- ECXY
-- OUTLINE
-- TMAP
-- MKPAL
-- ECPALT
-- TTABLE
-- INRNG
-- AMID
-- BMCH
+AMID: Expand the arguments to positive and negative and do mid().
+
+BPACK: Pack the value of the bit specification with bit width.
+
+BUNPACK: Slice the value with bit width.
+
+CAT: Concatenate tables. Indexes are added last and identical keys are overwritten.
+
+COMB: Combines two tables to create a hash table.
+
+ECPALT: Set transparency from palette table.
+
+HTD: Split a continuous string of hexadecimal numbers into a table.
+
+HTBL: Converting a string to a table(Multidimensional Array / Hash Table / Jagged Arrays)
+
+INRNG: Tests that the specified value is within a range.
+
+JOIN: Joins strings with a delimiter.
+
+MKPAL: create a color swap table for use in PAL().
+
+MSPLIT: Multi-layer split.
+
+OPRINT: Print with outline.
+
+RCEACH: Iterate from rectangle values.
+
+REPLACE: Perform string substitutions.
+
+TBFILL: Creates a table filled with the specified values.
+
+TMAP: More compact operable foreach iterator.
+
+TOHEX: Digit-aligned hexadecimal conversion (not including 0x).
+
+TTABLE: If the argument is a table, the table is returned.
+
+SET 2: Libraries to create objects
+★ Rectangles that incorporate judgment and drawing, scenes that manage screen and operation transitions
+
+EXRECT: Creates a rectangle object with extended functionality.
+
+MKSCENES: This post! Manage screen and operation switching.
+
+SET 3: Debugging Library
+★ Real-time or stop and inspect at any timing
+
+DBG: Displays any timing debugging value.
+
+DMP: Dumps information about a variable.
+
+++ REMOVED ++
+TOC: flr(divide) can be substituted for \.
+ECMKPAL: The format was changed and integrated in MKPAL.
+OUTLINE: Renamed to OPRINT, will be reflected in v0.14 knutil.
+SPLIT: Renamed to MSPLIT, will be reflected in v0.14 knutil.
+TTOH: Sum the numbers in argument 1 by shifting bits to argument 2. This function has been re-specified to BPACK.
+HTOT: Divide an integer value into 8 bits and make it into a table. This function has been re-specified to BUNPACK.
+SLICE: Cuts out the table at the specified index. the function was removed because there is a {unpack()} with a similar function.
+BMCH: Compares two values to judge that they both have a bit in common. "Bitwise operators" make it less significant.
+TONORM: Normalize argument values to the correct type(boolian, nil, number).
+
