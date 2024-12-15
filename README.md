@@ -143,69 +143,79 @@ durationとcountはデフォルトの場合、SCMD()で指定したものが使�
 `return 1`をするか、`_RM = 1`をする。
 
 ## SCENE以外の関数
-SET 1: Basic Library
-★ Libraries for frequent use and quick implementation
+### SET 1: 基本ライブラリ
+**★ 頻繁に使用し、迅速に実装するためのライブラリ**
 
-AMID: Expand the arguments to positive and negative and do mid().
+AMID: 引数を正と負に拡張し、mid() を実行します。
 
-BPACK: Pack the value of the bit specification with bit width.
+BPACK: ビット仕様の値をビット幅でパックします。
 
-BUNPACK: Slice the value with bit width.
+BUNPACK: 値をビット幅でスライスします。
 
-CAT: Concatenate tables. Indexes are added last and identical keys are overwritten.
+CAT: テーブルを連結します。インデックスは最後に追加され、同一のキーは上書きされます。
 
-COMB: Combines two tables to create a hash table.
+COMB: 2つのテーブルを結合してハッシュテーブルを作成します。
 
-ECPALT: Set transparency from palette table.
+ECPALT: パレットテーブルから透明度を設定します。
 
-HTD: Split a continuous string of hexadecimal numbers into a table.
+HTD: 16進数の連続文字列をテーブルに分割します。
 
-HTBL: Converting a string to a table(Multidimensional Array / Hash Table / Jagged Arrays)
+HTBL: 文字列をテーブルに変換します (多次元配列 / ハッシュ テーブル / ジャグ配列)
 
-INRNG: Tests that the specified value is within a range.
+INRNG: 指定された値が範囲内にあるかどうかをテストします。
 
-JOIN: Joins strings with a delimiter.
+JOIN: 区切り文字を使用して文字列を結合します。
 
-MKPAL: create a color swap table for use in PAL().
+MKPAL: PAL() で使用するためのカラースワップテーブルを作成します。
 
-MSPLIT: Multi-layer split.
+MSPLIT: マルチレイヤー分割。
 
-OPRINT: Print with outline.
+OPRINT: アウトライン付きで印刷します。
 
-RCEACH: Iterate from rectangle values.
+RCEACH: 矩形値から反復します。
 
-REPLACE: Perform string substitutions.
+REPLACE: 文字列の置換を行います。
 
-TBFILL: Creates a table filled with the specified values.
+TBFILL: 指定した値で埋められたテーブルを作成します。
 
-TMAP: More compact operable foreach iterator.
+TMAP: よりコンパクトに操作可能な foreach 反復子です。
 
-TOHEX: Digit-aligned hexadecimal conversion (not including 0x).
+TOHEX: 桁揃えの16進数変換 (0xは含みません)。
 
-TTABLE: If the argument is a table, the table is returned.
+TTABLE: 引数がテーブルの場合、テーブルを返します。
 
-SET 2: Libraries to create objects
-★ Rectangles that incorporate judgment and drawing, scenes that manage screen and operation transitions
+### SET 2: オブジェクトを作成するライブラリ
+**★ 判定と描画を組み込んだ矩形、画面と操作の遷移を管理するシーン**
 
-EXRECT: Creates a rectangle object with extended functionality.
+EXRECT: 拡張機能を備えた矩形オブジェクトを作成します。
 
-MKSCENES: This post! Manage screen and operation switching.
+MKSCENES: この投稿! 画面と操作の切り替えを管理します。
 
-SET 3: Debugging Library
-★ Real-time or stop and inspect at any timing
+### SET 3: デバッグライブラリ
+**★ リアルタイムまたは任意のタイミングで停止して検査します**
 
-DBG: Displays any timing debugging value.
+DBG: 任意のタイミングでデバッグ値を表示します。
 
-DMP: Dumps information about a variable.
+DMP: 変数に関する情報をダンプします。
 
-++ REMOVED ++
-TOC: flr(divide) can be substituted for \.
-ECMKPAL: The format was changed and integrated in MKPAL.
-OUTLINE: Renamed to OPRINT, will be reflected in v0.14 knutil.
-SPLIT: Renamed to MSPLIT, will be reflected in v0.14 knutil.
-TTOH: Sum the numbers in argument 1 by shifting bits to argument 2. This function has been re-specified to BPACK.
-HTOT: Divide an integer value into 8 bits and make it into a table. This function has been re-specified to BUNPACK.
-SLICE: Cuts out the table at the specified index. the function was removed because there is a {unpack()} with a similar function.
-BMCH: Compares two values to judge that they both have a bit in common. "Bitwise operators" make it less significant.
-TONORM: Normalize argument values to the correct type(boolian, nil, number).
+----
+**++ REMOVED ++**
+
+TOC: flr(divide) は \ の代わりに使用できます。
+
+ECMKPAL: フォーマットが変更され、MKPAL に統合されました。
+
+OUTLINE: OPRINT に名前が変更されました。v0.14 knutil に反映されます。
+
+SPLIT: MSPLIT に名前が変更されました。v0.14 knutil に反映されます。
+
+TTOH: ビットを引数 2 にシフトして引数 1 の数値を合計します。この関数は BPACK に再指定されました。
+
+HTOT: 整数値を 8 ビットに分割してテーブルにします。この関数は BUNPACK に再指定されました。
+
+SLICE: 指定されたインデックスでテーブルを切り出します。同様の機能を持つ {unpack()} があるため、この関数は削除されました。
+
+BMCH: 2 つの値を比較して、両方に共通するビットがあるかどうかを判断します。「ビット演算子」によって重要性が低くなります。
+
+TONORM: 引数の値を正しい型 (boolian、nil、number) に正規化します。
 
