@@ -201,7 +201,7 @@ DMP: 変数に関する情報をダンプします。
 ----
 **++ REMOVED ++**
 
-TOC: flr(divide) は \ の代わりに使用できます。
+TOC: flr(divide) は \ で代用できます。
 
 ECMKPAL: フォーマットが変更され、MKPAL に統合されました。
 
