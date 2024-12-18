@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 37
+version 42
 __lua__
 --bunpack
 --v0.1
@@ -17,12 +17,19 @@ __lua__
     -- by setting [number s] to a negative value, bit slice can be started from the decimal point.
 ]]--
 
+---- big-endian
+--function bunpack(b,s,w,...)
+--if w then
+--return flr(0x.ffff<<w&b>>>s),bunpack(b,s-(... or 0),...)
+--end
+--end
+
+-- little-endian
 function bunpack(b,s,w,...)
 if w then
-return flr(0x.ffff<<w&b>>>s),bunpack(b,s-(... or 0),...)
+return flr(0x.ffff<<w&b<<s),bunpack(b,s-(w or 0),...)
 end
 end
-
 ----
 cls()
 

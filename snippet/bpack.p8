@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 41
+version 42
 __lua__
 --bpack
 --v0.1
@@ -18,8 +18,14 @@ __lua__
     -- if there are fewer bit-width elements relative to the value to be packed, the bit-width elements are rotated.
 ]]--
 
+---- big-endian
+--function bpack(w,s,b,...)
+--return b and flr(0x.ffff<<add(w,deli(w,1))&b)<<s|bpack(w,s-w[1],...) or 0
+--end
+
+-- little-endian
 function bpack(w,s,b,...)
-return b and flr(0x.ffff<<add(w,deli(w,1))&b)<<s|bpack(w,s-w[1],...) or 0
+return b and flr(0x.ffff<<add(w,deli(w,1))&b)>>>s|bpack(w,s-w[#w],...) or 0
 end
 
 ----
