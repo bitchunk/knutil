@@ -1,13 +1,14 @@
 pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
---htbl v0.5a
+--htbl v0.5b
 --@shiftalow / bitchunk
 
 -- fixed placeholders ver
 --[[
 	- htbl         	     -- convert from string to hash table.
 	- @param  string s	  -- parsing character string.
+	- @param  string ... -- specify the target character and the string to be replaced, alternating consecutively.
 	- @return table      -- generated table value.
 	- @description
 		- a single string can initialize many values.
@@ -22,33 +23,14 @@ __lua__
 		- to initialize with an empty string, use /0/.
 		- bool values, and hexadecimal strings are automatically normalized.
 		- the first layer can be initialized with global values by using cat() in _env.
+		- the replacement search argument only supports one character.
+		- the replacement string can be of any length.
+		- "{} =; \n space" cannot be used as a replacement search character because it is an internal reserved word.
+		- instead, you can use "{} =; \n space" as the replacement character.
+		- this code requires the replace() function.
+
 ]]--
 
-function htbl(s)
-	local t,k={}
-	s,_htblc=split(s,"") or s,_htblc or 1
-	while 1 do
-		local p=s[_htblc]
-		_htblc+=1
-		if p=="{" or p=="=" then
-			local r=htbl(s)
-			if not k then
-				add(t,r)
-			else
-				t[k],k=p=="{" and r or r[1]
-			end
-		elseif not p or p=="}" or p==";" or p==" " then
-			add(t,k~="false" and (k=="true" or tonum(k) or k=="/0/" and "" or k))
-			_htblc,k=p and _htblc or nil
-			if p~=" " then
-				break
-			end
-		elseif p~="\n" then
-			k=(k or "")..(p=="\r" and "\n" or p=="\t" and " " or p)
-		end
-	end
-	return t
-end
 ----
 
 -- custom placeholders ver
@@ -65,7 +47,7 @@ end
 		- this code requires the replace() function.
 ]]--
 
-function htblp(s,...)
+function htbl(s,...)
 	local t,k={}
 	s,_htblc=split(s,"") or s,_htblc or 1
 	while 1 do
@@ -143,10 +125,10 @@ for i,v in pairs(type(t)=='table' and t or {t}) do
 	end
 end
 
--- [htblp] custom placeholder ver only sample
+-- custom placeholder ver only sample
 s={"\f","\t","\v","\\","\007"}
 for i,v in pairs(s) do
-	for c,v in pairs(htblp(v
+	for c,v in pairs(htbl(v
 		,"\f"," " -- search,replace
 		,"\t","tab" -- search,replace
 		,"\v","\n\nnewline-2" -- search,replace
@@ -161,6 +143,8 @@ end
 -->8
 --update history
 --[[
+**v0.5b**
+- will use the htblp() function as the main htbl().
 **v0.5a**
 - fixed htblp() replacement arguments to be valid during recursive processing.
 **v0.5**
@@ -190,6 +174,33 @@ end
 -->8
 --other version code
 --[[
+--v0.5a - no replace() ver -
+function htbl(s)
+	local t,k={}
+	s,_htblc=split(s,"") or s,_htblc or 1
+	while 1 do
+		local p=s[_htblc]
+		_htblc+=1
+		if p=="{" or p=="=" then
+			local r=htbl(s)
+			if not k then
+				add(t,r)
+			else
+				t[k],k=p=="{" and r or r[1]
+			end
+		elseif not p or p=="}" or p==";" or p==" " then
+			add(t,k~="false" and (k=="true" or tonum(k) or k=="/0/" and "" or k))
+			_htblc,k=p and _htblc or nil
+			if p~=" " then
+				break
+			end
+		elseif p~="\n" then
+			k=(k or "")..(p=="\r" and "\n" or p=="\t" and " " or p)
+		end
+	end
+	return t
+end
+
 --v0.3a
 function htbl(ht,c)
 local t,k,rt={}
