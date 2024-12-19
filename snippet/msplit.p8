@@ -1,8 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
-version 41
+version 42
 __lua__
 --msplit
---v0.1
+--v0.2
 --@shiftalow / bitchunk
 
 --[[
@@ -17,13 +17,11 @@ __lua__
 ]]--
 
 function msplit(s,d,...)
-local t=split(s,d or ' ',false)
-if ... then
-for i,v in pairs(t) do
-t[i]=msplit(v,...)
-end
-end
-return t
+	local t=split(s,d or ' ',false)
+	for i,v in pairs(... and t) do
+		t[i]=msplit(v,...)
+	end
+	return t
 end
 
 ----
@@ -69,8 +67,10 @@ end
 -->8
 --[[
 update history
+**v0.2**
+- do multidimensional checks on pairs arguments.
 **v0.1**
-	- first release
+- first release.
 ]]--
 
 __gfx__
