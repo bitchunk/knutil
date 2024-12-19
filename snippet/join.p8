@@ -1,8 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
-version 38
+version 42
 __lua__
 --join [join strings with a delimiter.]
---v0.2
+--v0.3
 --@shiftalow / bitchunk
 
 --[[
@@ -13,7 +13,10 @@ __lua__
 ]]--
 
 function join(d,s,...)
-return not s and '' or not ... and s or s..d..join(d,...)
+	for v in all({...}) do
+		s..=d..v
+	end
+	return s or ''
 end
 
 ----
@@ -26,34 +29,27 @@ cls()
 
 ?join('\-e=\-e',unpack(split('----------------------------','')))
 
+s=join('\+fk',unpack(split('llllllll','')))
+
+?join('\-e'..join('\+ec',unpack(split('」」」」」」','')))..'\-e「\-f',s,s,s)
+
 -->8
 --[[
 update history
-v0.2
-	- variable argument support by tuple
-v0.1
-	- first release
+**v0.3**
+- eliminate recursive functions (often resulting in out-of-memory)
+**v0.2**
+- variable argument support by tuple
+**v0.1**
+- first release
 ]]--
 
--- v0.1
---function join(s,d)
---	local a=''
---	for i,v in pairs(s) do
---		a=a..v..d
---	end
---	return sub(a,1,-1-#d)
---end
 -->8
 -- other version
 --[[
-
--- for long data
+--v0.2
 function join(d,s,...)
-local a={...}
-while a[1] do
-s..=d..deli(a,1)
-end
-return s or ''
+return not s and '' or not ... and s or s..d..join(d,...)
 end
 
 ]]--
