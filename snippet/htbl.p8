@@ -28,24 +28,9 @@ __lua__
 		- "{} =; \n space" cannot be used as a replacement search character because it is an internal reserved word.
 		- instead, you can use "{} =; \n space" as the replacement character.
 		- this code requires the replace() function.
-
 ]]--
 
 ----
-
--- custom placeholders ver
---[[
-	- htblp        	     -- convert from string to hash table.
-	- @param  string s	  -- parsing character string.
-	- @param  string ... -- specify the target character and the string to be replaced, alternating consecutively.
-	- @return table      -- generated table value.
-	- @description
-	 - the replacement search argument only supports one character.
-	 - the string to be replaced can be any length.
-		- {} =; \n space cannot be used as a replacement search character because it is an internal reserved word.
-		- instead, you can use {} =; \n space as the replacement character.
-		- this code requires the replace() function.
-]]--
 
 function htbl(s,...)
 	local t,k={}
