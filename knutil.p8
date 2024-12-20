@@ -74,11 +74,6 @@ function htbl(s,...)
 	return t
 end
 
---	foreach(msplit(b,n or 2),function(v)
---		add(a,tonum('0x'..v))
---	end)
---	return a
-
 function htd(b,n)
 	return tmap(msplit(b,n or 2),function(v)
 		return tonum('0x'..v)
@@ -303,12 +298,11 @@ end)
 end
 
 function scmd(b,p,...)
-return tmap(msplit(replace(b,"\t",""),"\n",' '),function(v)
-local s,m,f,d=unpack(v)
---return _scal[s] and _scal[s][m](f,tonum(d),p or {}) or false
-return s=='' and 'eoc' or _scal[s] and _scal[s][m](f,tonum(d),p) or false
-end)
-,... and scmd(...)
+	return tmap(msplit(replace(b,"\t",""),"\n",' '),function(v)
+		local s,m,f,d=unpack(v)
+		return s=='' and 'eoc' or _scal[s] and _scal[s][m](f,tonum(d),p) or false
+	end)
+	,... and scmd(...)
 end
 cmdscenes=scmd
 
@@ -636,7 +630,7 @@ tokencost{
 --tokencost-- [❎-to-exit]
  knutil{
   essential-library
-  token=676;
+  token=670;
  }
  exrect{
   extended-rect
@@ -644,7 +638,7 @@ tokencost{
  }
  scenes{
   scene-manager
-  token=371;
+  token=395;
  }
  dmp{
   dump-table-values
@@ -656,7 +650,7 @@ tokencost{
  }
 }
 ]])
---total cost 1566 tokens
+--total cost 1584 tokens
 
 --library
 function key_document(o)
@@ -783,12 +777,6 @@ scmd([[
 	stack st stacked 0
 	items st draw_items 0
 ]], items)
---scmd([[
---	keycheck st key_order 0
---	stack st stacked 0
---	items st draw_items 0
---	library cl
---]], items)
 poke(0x5f58,0)
 end)
 
@@ -834,13 +822,13 @@ bunpack	slice the value with bit width.	「bitはは゛」を していして �
 cat	concatenate tables. indexes are added last and identical keys are overwritten.	テ-フ゛ルの れんけつを します。	cat(f,...)\n- @param  table f  -- add destination table.\n- @param  table ... -- next table to add.\n- @return table  -- concatenated table.
 comb	combines two tables to create a hash table.	キ-のテ-フ゛ルと あたいのテ-フ゛ルから れんそうはいれつテ-フ゛ルを さくせいします。	comb(k,v)\n- @param  table k  -- key string table.\n- @param  table b  -- value tables.\n- @return table  -- table of associative arrays.
 ecpalt	transparency setting from the color table.	カラ-テ-フ゛ルから とうめいせっていを します。	ecpalt(p)\n- @param  table p  -- table of colors to be transparent.\n\n- @description\n - transparency is reset at each function execution.\n - if the value of the "color id key" in the palette table is 0, the palette becomes transparent.\n - the palette that was made black by mkpal() can be used as transparent as it is.\n - the format is redundant due to the specification to match mkpalt().
+htbl	creates a multi-variable table from a string. can be used in conjunction with string replacement.	もし゛れつから たようなテ-フ゛ルを さくせいします。もし゛れつちかんの へいよう あり。	htbl(s,...)\n- @param  string s  -- parsing character string.\n- @param  string ... -- specify the target character and the string to be replaced, alternating consecutively.\n- @return table  -- generated table.\n\n- @description\n - a single string can initialize many values.\n - returns at least an empty table.\n - elements can be added space-separated. (the space character cannot be used as a value.)\n - spaces can be replaced with \t.\n - newline codes are ignored.\n - newline can be replaced with \r.\n - {} specifies a table.\n - key=val; key{val} specifies the key and value of the table.\n - if you enclose an empty string, the element will become nil.\n - to initialize with an empty string, use /0/.\n - bool values, nil, and hexadecimal strings are automatically normalized.\n - the first layer can be initialized with global values by using cat() in _env.\n - the replacement search argument only supports one character.\n - the replacement string can be of any length.\n - "{} =; \n space" cannot be used as a replacement search character because it is an internal reserved word.\n - instead, you can use "{} =; \n space" as the replacement character.\n - this code requires the replace() function.
 htd	convert a contiguous hexadecimal string into a table.	れんそ゛くした 16しんすうもし゛れつを テ-フ゛ルに へんかんします。	htd(b,n)\n- @param  string b  -- consecutive hexadecimal strings (not including 0x).\n- @param  number n  -- number of digits to be split.\n- @return table  -- segmented table.\n\n- @description\n - the number of supported delimited bits is 4,8,12,16 bits (1~4 nibbles).\n - characters that cannot be converted to numbers are ignored.\n - the result of the api's "tonum('0x'. .v)" of the api.\n - depending on the delimiter, a missing last character will result in a lower digit by the number of missing characters.
-htbl	converting a string to a table(multidimensional array / hash table / jagged arrays)	もし゛れつから テ-フ゛ルを さくせいします。(たし゛ゅうはいれつ たいおう)	htbl(ht)\n- @param  string ht  -- formatted string.\n- @return table  -- generated table.\n\n- @description\n - a single string can initialize many values.\n - returns at least an empty table.\n - elements can be added space-separated. (the space character cannot be used as a value.)\n - {} specifies a table.\n - key=val; key{val} specifies the key and value of the table.\n - newline codes are ignored.\n - bool values, nil, and hexadecimal strings are automatically normalized.\n - the first level can be initialized with global values by using cat() in _env.
 inrng	tests that the specified value is within a range.	すうちか゛ はんいないて゛あることを はんていします。	inrng(...)\n- @param  number ...  -- test value\n- @param  number ...  -- lowest value\n- @param  number ...  -- highest value\n- @return boolean  -- if it's within the range\n\n- @description\n - the number of supported delimited bits is 4,8,12,16 bits (1~4 nibbles).\n - characters that cannot be converted to numbers are ignored.\n - the result of the api's "tonum('0x'. .v)" of the api.\n - depending on the delimiter, a missing last character will result in a lower digit by the number of missing characters.
 join	joins strings with a delimiter.	もし゛れつを れんけつします。	join(d,s,...)\n- @param  string d  -- delimiter\n- @param  string s,... -- string to be joined\n- @return string  -- joined string value
-mkpal	create a palette table with consecutive hexadecimal strings.	れんそ゛くした 16しんすうもし゛れつて゛ ハ゜レットテ-フ゛ルを さくせいします。	mkpal(p,s)\n- @param  any p  -- a "table, or hexadecimal string" containing the color id to be swapped.\n- @param  any s  -- a "table, or hexadecimal string" containing the color id to be displayed after swapping.\n- @return table,... -- returns the palette swap table possible with pal(). returns a tuple if there are multiple arguments.
+mkpal	create a color swap table for use in pal().	れんそ゛くした 16しんすうもし゛れつて゛ ハ゜レットテ-フ゛ルを さくせいします。	mkpal(p,s,...)\n- @param  any p  -- a "table, or hexadecimal string" containing the color id to be swapped.\n- @param  any s,...  -- a "table, or hexadecimal string" containing the color id to  after swapping.\n- @return table,... -- returns the palette swap table possible with pal(). returns a tuple if there are multiple arguments.\n\n- @description\n - it is not an error if the number of elements in the swap table does not match.
 msplit	converts a string into a table by splitting it with multiple delimiters.	もし゛れつを ふくすうの くき゛りもし゛て゛ ふ゛んかつして テ-フ゛ルに へんかんします。	msplit(s,d,...)\n- @param  string s  -- string to be split.\n- @param  any  d  -- delimiter of division.\n- @param  any  ... -- next delimiter after splitting.\n- @return table  -- table partitioned from string.
-oprint	adds outlines to text and prints them.	もし゛を アウトラインつきて゛ ひ゛ょうか゛ します。	oprint(t,x,y,f,o)\n- @param  string s  -- text to display.\n- @param  number x  -- x coordinates.\n- @param  number y  -- y coordinates.\n- @param  number f  -- foreground color.\n- @param  number o  -- outline color.\n- @param  string p  -- p8scii code for decoration (default is outline decoration)\n\n- @description\n - enclosure is not possible if tabs or newlines are included. (in pico8_v0.2.5.g)\n - operation is not guaranteed if "param s" contains decorative p8scii.\n - decorative parameters are "," separated, with the last character ending in a ",".
+oprint	adds outlines to text and prints them.	もし゛を アウトラインつきて゛ ひ゛ょうか゛ します。	oprint(s,x,y,f,o,p)\n- @param  string s  -- text to display.\n- @param  number x  -- x coordinates.\n- @param  number y  -- y coordinates.\n- @param  number f  -- foreground color.\n- @param  number o  -- outline color.\n- @param  string p  -- p8scii code for decoration (default is outline decoration)\n\n- @description\n - enclosure is not possible if tabs or newlines are included. (in pico8_v0.2.5.g)\n - operation is not guaranteed if "param s" contains decorative p8scii.\n - decorative parameters are "," separated, with the last character ending in a ",".
 rceach	iterate from rectangle values.	くけいテ゛-タて゛ ル-フ゜をします。	rceach(r,f)\n- @param  string|table r  -- rectangle initialization format.\n- @param  function f  -- function(x, y, r) to execute.\n\n  * in a function\n - @param x  number  -- x-coordinate\n - @param y  number  -- y-coordinate\n - @param r  string|table -- argument rectangle format
 replace	perform string substitutions.	もし゛れつを ちかんします。	replace(s,f,r,...)\n- @param  string s  -- target string\n- @param  string f  -- matching string\n- @param  string r  -- string to replace from the matched string\n- @param  string ...  -- next match & replace string\n- @return string  -- replaced string
 tbfill	creates a table filled with the specified values.	していした すうちて゛ うめたテ-フ゛ルを つくります。	tbfill(v,s,e,...)\n- @param  any  v  -- values that satisfy the table.\n- @param  number s  -- index to start.\n- @param  number e  -- index value to end.\n- @param  number ...  -- indexes to start and end the next level of hierarchy.\n- @return table  -- table filled with values. \n\n- @description\n - by specifying additional start and end elements for the tuple, it becomes a multidimensional table.
@@ -849,8 +837,8 @@ tohex	converts an integer 10 number to the specified number of hexadecimal digit
 ttable	if the argument is a table, the table is returned.	テ-フ゛ルて゛あれは゛テ-フ゛ルを かえし、そうて゛なけれは゛falseを かえします。	ttable(p)\n- @param  any p -- check if it is a table.\n- @return any  -- if it is a table, return the argument, otherwise return false.\n\n- @description\n - determines the type of a variable or argument of indeterminate type.\n - for example, when switching the processing method between string and table.
 dbg	outputs values to the screen regardless of output timing.	しゅつりょくタイミンク゛かんけいなして゛ あたいを か゛めんしゅつりょく します。	dbg(...)\n- @param  any ... -- specify the value you want to display as debugging.\n\n- @description\n - executed with arguments, it stacks values for display.\n - you need to specify 'd?' at the timing you want to display.\n - when the stacked value display is complete, it is reset.
 dmp	dumps information about a variable.	テ-フ゛ルの ないようを ひょうし゛します。	dmp(v)\n- @param  any v  -- value to be displayed, table.
-exrect	generate rect object with extended functionality.	きのうかくちょうしたRECTオフ゛シ゛▤クトを せいせいします。	exrect(p)\n- @param  string|table p -- 'x y w h' {x,y,w,h} rectangle data. this argument is retained.\n- @return rect-object - rectangular objects that can be drawn and judged.\n\n- @description\n - drawing the rectangle that the object has.\n - determining the inner bounding box of a rectangle.\n - holding and referencing rectangle data.\n  \n - @function con - determines the inclusions of rectangular objects or coordinates.\n  - @param  rect-object|number p -- if the argument is not only an object, it is determined by x-coordinates.\n  - @param  number y -- y-coordinate\n  - @return bool\n\n - @function hov - determines that the rectangle overlaps.\n  - @param  rect-object r\n  - @param  inversion i -- for recurrence check(the target rectangle is being replaced).\n  - @return bool\n\n - @function ud - rectangle update\n  - @param rect-object|number p -- if it is a number, it is assumed to be an x coordinate. for strings and tables, it is treated in the same way as initialization "exrect".\n  - @param number y -- y-coordinate\n  - @param number w -- width\n  - @param number h -- height\n  - @return rect-object -- own-object\n\n - @function rs - draw rect\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function rf - draw rectfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function cs - draw circ\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function cf - draw circfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function os - draw oval\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function of - draw ovalfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object
-mkscenes	create a multitasking scene object.	マルチタスクの シ-ンオフ゛シ゛▤クトを さくせいします。	mkscenes( keys )\n- @param  table keys  -- scene name table.\n- @return table  -- scene object table for scanning.\n\n- @description\n - look for knutil on lexalofflebbs.
+exrect	generate rect object with extended functionality.	きのうかくちょうしたrectオフ゛シ゛▤クトを せいせいします。	exrect(p)\n- @param  string|table p -- 'x y w h' {x,y,w,h} rectangle data. this argument is retained.\n- @return rect-object - rectangular objects that can be drawn and judged.\n\n- @description\n - drawing the rectangle that the object has.\n - determining the inner bounding box of a rectangle.\n - holding and referencing rectangle data.\n  \n - @function con - determines the inclusions of rectangular objects or coordinates.\n  - @param  rect-object|number p -- if the argument is not only an object, it is determined by x-coordinates.\n  - @param  number y -- y-coordinate\n  - @return bool\n\n - @function hov - determines that the rectangle overlaps.\n  - @param  rect-object r\n  - @param  inversion i -- for recurrence check(the target rectangle is being replaced).\n  - @return bool\n\n - @function ud - rectangle update\n  - @param rect-object|number p -- if it is a number, it is assumed to be an x coordinate. for strings and tables, it is treated in the same way as initialization "exrect".\n  - @param number y -- y-coordinate\n  - @param number w -- width\n  - @param number h -- height\n  - @return rect-object -- own-object\n\n - @function rs - draw rect\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function rf - draw rectfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function cs - draw circ\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function cf - draw circfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function os - draw oval\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function of - draw ovalfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object
+mkscenes	create a multitasking scene object.	マルチタスクの シ-ンオフ゛シ゛▤クトを さくせいします。	mkscenes( keys )\n- @param  any keys  -- scene name table(table / space-separated string).\n- @return table  -- scene object table for scanning.\n\n- @description\n - look for knutil on lexalofflebbs.
 ]],"\n","\t")
 scmd([[
 	library st draw_library 0
