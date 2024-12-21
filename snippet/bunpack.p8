@@ -2,58 +2,61 @@ pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
 --bunpack
---v0.1
+--v0.2
 --@shiftalow / bitchunk
 
 --[[
 	- bunpack            -- slice the value with bit width.
 	- @param  number b   -- the value to slice.
-	- @param  number s   -- bit value to right-shift before the first slice.
+	- @param  number s   -- bit value to left-shift before the first slice.
 	- @param  number w   -- bit width to the first slice.
 	- @param  number ... -- bit width to the next slices.
 	- @return ...        -- returns the sliced value as a tuple.
 	- @description
-    -- by specifying the argument after [number w], a value of up to 32 bits can be sliced.
-    -- by setting [number s] to a negative value, bit slice can be started from the decimal point.
+		- by specifying the argument after [number w], a value of up to 32 bits can be sliced.
+		- set [number s] to a negative value to start the slicing from the decimal point bit.
 ]]--
 
----- big-endian
+---- big-endian(b=0xf8a1&s=12:[f,8,a,1])
 --function bunpack(b,s,w,...)
 --if w then
 --return flr(0x.ffff<<w&b>>>s),bunpack(b,s-(... or 0),...)
 --end
 --end
 
--- little-endian
+-- little-endian(b=0xf8a1&s=0:[1,a,8,f])
 function bunpack(b,s,w,...)
 if w then
-return flr(0x.ffff<<w&b<<s),bunpack(b,s-(w or 0),...)
+return flr(0x.ffff<<w&b>>>s),bunpack(b,s+(w or 0),...)
 end
 end
 ----
 cls()
 
 ?'\n\f9★\fb[0xf4]\f6 slice to'
-?'               "0xf" and "0x4"\n'
-local a,b=bunpack(0xf4,4,4,4)
-?a..' '..b,7
+?'               "0x4" and "\fc0xf\f6"\n'
+local a,b=bunpack(0xf4,0,4,4)
+?a.." \fc"..b.."\f7",7
 
-?'\n\n\f9★\fb[0xfe83.ffff]\f6 slice with'
+?'\n\n\f9★\fb[0xffff.\fc83\fbfe]\f6 slice with'
 ?'     bit-widths of "8" and "4"\n'
-local v={bunpack(0xfe83.ffff,8,8,8,4,4,8,4)}
+local v={bunpack(0xffff.83fe,-16,8,8,4,4,8,4)}
 local s=''
 for i,v in pairs(v) do
+if i==2 then
+v="\fc"..v.."\f7"
+end
 s..=v..' '
 end
 ?s,7
 ?'     \f6(0 if it overflows.)'
 
-?'\n\n\f9★\fb[0xf7f7.fff7]\f6 slice with 1'
+?'\n\n\f9★\fb[0xf7f7.fff\fc7\fb]\f6 slice with 1'
 ?'             bit-widths of "1"\n'
 local v={
 	bunpack(
 		0xf7f7.fff7
-		,15
+		,-16
 		,unpack(split(
 			'11111111'   -- from:32 to:25
 			..'11111111' -- from:24 to:17
@@ -63,15 +66,17 @@ local v={
 	)))}
 local s=''
 for i,v in pairs(v) do
-?'。\+ci。\+ci。',i*3,100,(v==1 and (i%4==1 and 7 or 6) or 0)
+?'。\+ci。\+ci。',i*3,100,(v==1 and (i<5 and 12 or i%4==1 and 7 or 6) or 0)
 end
 --?' (0 if it overflows.) \n'
 
 -->8
 --[[
 update history
+**v0.2**
+- change table storage order to little endian.
 **v0.1**
-	- first release
+- first release
 ]]--
 
 __gfx__
