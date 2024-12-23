@@ -71,7 +71,6 @@ _mkrs,_hovk,_mnb=split'x,y,w,h,ex,ey,r,p'
 function _rfmt(p)
 local x,y,w,h=unpack(type(p)=='table' and p or split(p,' ',true))
 return comb(_mkrs,{x,y,w,h,x+w-mid(w,1,-1),y+h-mid(h,1,-1),w/2,p})
---return comb(_mkrs,{x,y,w,h,x+w-1,y+h-1,w/2,p})
 end
 
 function exrect(p)
@@ -221,9 +220,10 @@ end
 --update history
 --[[
 **v0.2**
-	- negative magnitudes supported
+- negative magnitudes supported
+
 **v0.1**
-	- first release
+- first release
 ]]--
 
 __gfx__
