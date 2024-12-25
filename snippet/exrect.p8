@@ -129,16 +129,16 @@ return a
 end
 
 function cat(f,...)
-foreach({...},function(s)
-for k,v in pairs(s) do
-if tonum(k) then
-add(f,v)
-else
-f[k]=v
-end
-end
-end)
-return f
+	for s in all({...}) do
+		for k,v in pairs(s) do
+			if tonum(k) then
+				add(f,v)
+			else
+				f[k]=v
+			end
+		end
+	end
+	return f
 end
 
 aspect=1
