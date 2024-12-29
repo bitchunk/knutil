@@ -99,8 +99,10 @@ end
 
 function msplit(s,d,...)
 	local t=split(s,d or ' ',false)
-	for i,v in pairs(... and t) do
-		t[i]=msplit(v,...)
+	if ... then
+		for i,v in pairs(t) do
+			t[i]=msplit(v,...)
+		end
 	end
 	return t
 end
@@ -171,7 +173,7 @@ _mkrs,_hovk,_mnb=htbl'x y w h ex ey r p'
 ,htbl'con hov ud rs rf cs cf os of cam'
 function _rfmt(p)
 local x,y,w,h=unpack(ttable(p) or split(p,' ',true))
-return comb(_mkrs,{x,y,w,h,x+w-1,y+h-1,w/2,p})
+return comb(_mkrs,{x,y,w,h,x+w-mid(w,1,-1),y+h-mid(h,1,-1),w/2,p})
 end
 
 function exrect(p)
@@ -630,11 +632,11 @@ tokencost{
 --tokencost-- [❎-to-exit]
  knutil{
   essential-library
-  token=670;
+  token=671;
  }
  exrect{
   extended-rect
-  token=306;
+  token=314;
  }
  scenes{
   scene-manager
@@ -816,29 +818,29 @@ poke(0x5600,fwidth,fwidth,lheight,0,0,0x3)
 ?"\^!5600⁶⁶ᶜ\0\0³\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0ᵉᵉᵉᵉᵉ\0\0\0\0ᵉᵉᵉ\0\0\0\0\0ᵉ\nᵉ\0\0\0\0\0\n⁴\n\0\0\0\0\0\n\0\n\0\0\0\0\0\0‖\0\0\0\0\0⁸ᶜᵉᶜ⁸\0\0\0²⁶ᵉ⁶²\0\0、⁴⁴\0\0\0\0\0\0\0\0\0⁴⁴⁷\0■■\n゜⁴゜⁴\0\0\0\0⁶⁶\0\0\0\0\0\0\0\0¹²\0\0\0\0\0²⁵²\0⁵⁵\0\0\0\0\0\0²⁵²\0\0\0\0\0\0\0\0\0\0\0\0\0⁴⁴⁴⁴⁴\0⁴\0\n\n\0\0\0\0\0\0⁸\n゜\n゜\n²\0⁴゛⁵ᵉ⁘ᶠ⁴\0⁸\t⁵⁴⁘□²\0²⁵⁵□‖\t◀\0⁴⁴\0\0\0\0\0\0⁸⁴⁴⁴⁴⁴⁸\0²⁴⁴⁴⁴⁴²\0\0\n⁴ᵉ⁴\n\0\0\0\0⁴ᵉ⁴\0\0\0\0\0\0\0\0²¹\0\0\0\0ᵉ\0\0\0\0\0\0\0\0\0\0²\0⁸⁸⁴⁴⁴²²\0ᵉ」」」」」ᵉ\0ᶜᵉᶜᶜᶜᶜ゛\0ᵉ」「ᵉ³³゜\0ᵉ」「ᵉ「」ᵉ\0」」」゛「「「\0゜³³ᶠ「「ᶠ\0ᵉ³³ᶠ⁙⁙ᵉ\0゜」」「「「「\0ᵉ」」ᵉ」」ᵉ\0ᵉ」」゛「「ᵉ\0\0⁴\0\0\0⁴\0\0\0⁴\0\0⁴⁴²\0\0⁸⁴²⁴⁸\0\0\0\0ᶠ\0ᶠ\0\0\0\0²⁴⁸⁴²\0\0ᵉ⁸⁸ᶜ⁴\0⁴\0ᵉ」‖‖」¹ᵉ\0ᵉ■■■゜■■\0ᵉ■■ᶠ■■゜\0゛¹¹¹¹¹゛\0ᶠ■■■■■ᶠ\0゛¹¹ᶠ¹¹゜\0゛¹¹ᶠ¹¹¹\0゛¹¹」■■ᵉ\0■■■゜■■■\0ᵉ⁴⁴⁴⁴⁴ᵉ\0゛⁸⁸⁸\t\t⁶\0■\t⁵³³⁵」\0¹¹¹¹¹¹゜\0•‖‖‖■■■\0⁙‖‖‖‖‖」\0ᵉ■■■■■ᵉ\0ᵉ■■■ᶠ¹¹\0ᵉ■■■‖\t◀\0ᵉ■■■ᶠ\t■\0゛¹¹ᵉ▮▮ᶠ\0゜⁴⁴⁴⁴⁴⁴\0■■■■■■ᵉ\0■■■■\n\n⁴\0■■■‖‖‖•\0■■\n⁴⁴\n■\0■■■■ᵉ⁴⁴\0゜▮⁸⁴²¹゜\0ᶜ⁴⁴⁴⁴⁴ᶜ\0\0²⁴⁴⁴⁸\0\0⁶⁴⁴⁴⁴⁴⁶\0⁴\n\0\0\0\0\0\0\0\0\0\0\0ᵉ\0\0⁴⁸\0\0\0\0\0\0\0ᵉ▮゛■゜\0\0¹¹ᶠ■■゜\0\0\0\0゛¹¹゛\0\0▮▮゛■■゜\0\0\0ᵉ■゜¹゛\0\0、²゜²²²\0\0\0、□□、■ᵉ\0¹¹ᶠ■■■\0\0⁴\0⁶⁴⁴ᶜ\0\0▮\0▮■■ᵉ\0\0¹■\t⁷⁵」\0\0⁶⁴⁴⁴⁴ᶜ\0\0\0\0•‖‖‖\0\0\0\0ᵉ■■■\0\0\0\0ᵉ■■ᵉ\0\0\0\0゛■■ᶠ¹\0\0\0ᶠ■■゛▮\0\0\0。³¹¹\0\0\0\0゛⁷「ᶠ\0\0\0²゜²²、\0\0\0\0■■■ᵉ\0\0\0\0■■\t⁶\0\0\0\0‖‖•\n\0\0\0\0■□ᶜ⁙\0\0\0\0■■゛▮ᶠ\0\0\0゜ᶜ²゜\0\0ᶜ⁴⁴⁶⁴⁴ᶜ\0⁴⁴⁴⁴⁴⁴⁴\0⁶⁴⁴ᶜ⁴⁴⁶\0\0\0²‖⁸\0\0\0\0⁴■⁴ᵉᵉ\0\0⁴⁸「「(*⁶\0⁸⁴⁶⁶⁵\r「\0\0■•゜‖ᵉ\0\0\0ᵉ‖■•ᵉ\0\0\0■⁴■⁴■\0\0\0\n•\0•\n\0\0⁴゜⁴⁴\n\n■\0⁸、⁸、、⁸⁸\0ᶠ\tᶠᶠ‖\r•\0⁴゜\n゜ᵉᵉ、\0\n゜\nᵉ■⁴ᵉ\0⁸「\0⁸\0「「\0゜‖゜‖•゜■\0⁴゜\n゜\0ᵉᵉ\0「「「⁸⁸⁸⁸\0⁵ᶠ⁵ᵇ⁴ᵇᶠ\0\0\0⁶ᵇ⁶\rᵇ\0\0\0\0\t\t\t²\0\0\0²⁶\t⁸⁶\0\0\0²⁷⁴²\r\0\0\0\nᵇ²ᶠᵇ\0\0\0\0ᶠ⁸ᶜ²\0\0\0\0⁸⁸⁷⁴\0\0\0²ᶠ\t⁸⁴\0\0\0\0ᵉ⁴⁴ᶠ\0\0\0⁴ᶠ⁴⁶⁵\0⁶ᵇᵉ¥‖‖⁙\0⁸■■■■‖²\0⁶ᶜ⁙▮▮⁸⁴\0²ᵉᵇ⁴⁶\t」\0□◀⁙ᵉ‖‖ᵇ\0□◀⁙²□□」\0⁴ᶠ⁸゛⁸¹ᵉ\0⁸⁴²¹¹⁶「\0\t。\t\t\t\t⁵\0ᵉ▮\0\0\0¹゛\0、⁷⁴⁸¹¹ᵉ\0¹¹¹¹■■ᵉ\0⁸゜ᶜ\n\nᶜ⁶\0⁸¥ᶠ\n²²、\0ᶠ⁴¥⁷²²ᶜ\0ᵉ³¥²¹⁵」\0²゛³ᵉ■▮ᶜ\0\0ᵉ■▮▮▮ᶜ\0「▶⁸⁴⁴⁴「\0¹■\n⁶¹¹゛\0□▶■ᶜ⁶\t◀\0¹。¹¹¹⁵」\0\t\r•‖‖•「\0」‖▶□¥‖。\0ᵉ■‖‖‖‖⁙\0\t゜\t\t\r⁙\r\0³¥¹■■■ᵉ\0ᵉ⁸⁴⁴\t」‖\0⁶\t\t■▮▮▮\0。\t。\t\r⁙\r\0⁷、⁷、⁶\t▶\0⁙⁘⁘゛‖‖⁙\0□▶□⁶‖‖ᵉ\0\t\r▶‖‖⁙⁸\0²ᶠ²⁷□□ᶜ\0\t\r□⁙□⁴⁴\0\r◀‖‖‖ᶜ²\0⁴、⁴⁴ᵉ」▶\0ᶜ■¹ᵉ▮▮ᶜ\0■■‖⁙□▮⁸\0ᵉ⁸ᶜ⁙、□ᵉ\0□•▶□ᵇ\n¥\0ᵉ⁸⁴ᵉ■▮ᶜ\0¹\r⁙■□⁙\n\0ᵉ³¥⁶\t¹゛\0⁴²²⁶\t\t」\0\0\0\0⁶\t⁸⁴\0\0\0⁵ᶠ\t²²\0\0\0\r◀‖\r⁴\0\0\0²ᵉ²⁵ᵇ\0ᶠ▮▮⁘ᶜ⁴²\0▮▮▮⁸ᶠ⁸⁸\0⁴゜■■▮▮ᵉ\0▮ᶠ⁴⁴⁴⁴゜\0⁸゜⁸ᶜᶜ\n\t\0²ᶠ□□□□」\0⁴゜⁴⁴゜⁸⁸\0ᵉ□■▮▮▮ᵉ\0¹゜\t\t⁸⁸⁶\0ᶠ▮▮▮▮▮゜\0□゜□□▮▮ᶜ\0⁷▮▶▮▮▮ᶠ\0ᶠ▮▮⁸ᶜ□■\0²゛⁙²²²、\0■■□□▮▮ᵉ\0ᵉ■■゜■▮⁸\0「ᵉ⁸゜⁸⁸⁶\0⁵‖‖▮▮▮ᵉ\0゛\0゜⁸⁸⁸⁶\0¹¹¹ᶠ■¹¹\0⁸゜⁸⁸⁸⁸⁶\0゛\0\0\0\0\0゜\0ᶠ▮▮ᵇᶜ□¹\0⁴ᶠ▮▮ᵉ‖⁴\0▮▮▮▮▮⁸⁷\0⁸□□□■■■\0¹■ᶠ¹¹¹゛\0ᶠ▮▮▮▮⁸⁴\0⁶\t⁸⁸▮▮▮\0⁴゜⁴\r‖‖‖\0ᶠ▮▮▮\t⁶「\0²、²、¹²、\0⁴²²■■」▶\0▮□□⁘⁘⁸▶\0ᶠ²²ᶠ²²、\0。⁙■\t²²²\0⁷⁸⁸⁸⁸⁸゜\0ᶠ▮▮゛▮▮゜\0゜\0ᶠ▮▮⁸⁴\0■■■■▮▮ᶜ\0⁴⁵⁵⁵⁵⁵」\0¹¹¹¹■\t⁶\0ᶠ■■■■■ᵉ\0ᶠ■■■▮▮⁸\0ᶠ▮゜▮▮▮⁸\0\0▶▮▮▮▮ᶠ\0\0\0⁵‖▮▮ᵉ\0\0\0\rᵇ¹²²\0\0\0³⁴⁴⁴ᶠ\0\0\0³⁴⁶⁴⁷\0「⁴³\0「⁴³\0³⁴「\0³⁴「\0"
 function library_init(p)
 libman=msplit([[
-amid	mid with positive and negative of the specified number.	していした すうちの「せい」と「ふ」て゛midを おこないます。	amid(...)\n- @param  number ... -- absolute upper and lower limits, which are treated as positive and negative numbers.\n- @param  number ... -- value to be tested as median.\n- @return number  -- value within the range specified by the first argument.\n\n- @description\n - it is used in controlling the camera and parameters that can swing either + or -.
-bpack	pack the value of the bit specification with bit width.	ふくすうの「bitち」をしていして ひとつの すうちに つめます。	bpack(w,s,b,...)\n- @param  table  w  -- bit width table for packing.\n- @param  number s  -- bit value to be shifted to the right before the first pack.\n- @param  number b  -- the value to pack.\n- @param  number ... -- bit width to the next pack.\n- @return number  -- packed value.\n\n- @description\n - by packs in the direction of low bits when multiple bit values are specified.\n - by setting [number s] to a negative value, bit pack can be started from the decimal point.\n - if there are fewer bit-width elements relative to the value to be packed, the bit-width elements are rotated.
-bunpack	slice the value with bit width.	「bitはは゛」を していして ひとつのすうちを ふ゛んかつして かえします。	bunpack(b,s,w,...) \n- @param  number b  -- the value to slice.\n- @param  number s  -- bit value to right-shift before the first slice.\n- @param  number w  -- bit width to the first slice.\n- @param  number ... -- bit width to the next slices.\n- @return ...  -- sliced value as a tuple.\n\n- @description\n - by specifying the argument after [number w], a value of up to 32 bits can be sliced.\n - by setting [number s] to a negative value, bit slice can be started from the decimal point.
-cat	concatenate tables. indexes are added last and identical keys are overwritten.	テ-フ゛ルの れんけつを します。	cat(f,...)\n- @param  table f  -- add destination table.\n- @param  table ... -- next table to add.\n- @return table  -- concatenated table.
-comb	combines two tables to create a hash table.	キ-のテ-フ゛ルと あたいのテ-フ゛ルから れんそうはいれつテ-フ゛ルを さくせいします。	comb(k,v)\n- @param  table k  -- key string table.\n- @param  table b  -- value tables.\n- @return table  -- table of associative arrays.
-ecpalt	transparency setting from the color table.	カラ-テ-フ゛ルから とうめいせっていを します。	ecpalt(p)\n- @param  table p  -- table of colors to be transparent.\n\n- @description\n - transparency is reset at each function execution.\n - if the value of the "color id key" in the palette table is 0, the palette becomes transparent.\n - the palette that was made black by mkpal() can be used as transparent as it is.\n - the format is redundant due to the specification to match mkpalt().
-htbl	creates a multi-variable table from a string. can be used in conjunction with string replacement.	もし゛れつから たようなテ-フ゛ルを さくせいします。もし゛れつちかんの へいよう あり。	htbl(s,...)\n- @param  string s  -- parsing character string.\n- @param  string ... -- specify the target character and the string to be replaced, alternating consecutively.\n- @return table  -- generated table.\n\n- @description\n - a single string can initialize many values.\n - returns at least an empty table.\n - elements can be added space-separated. (the space character cannot be used as a value.)\n - spaces can be replaced with \t.\n - newline codes are ignored.\n - newline can be replaced with \r.\n - {} specifies a table.\n - key=val; key{val} specifies the key and value of the table.\n - if you enclose an empty string, the element will become nil.\n - to initialize with an empty string, use /0/.\n - bool values, nil, and hexadecimal strings are automatically normalized.\n - the first layer can be initialized with global values by using cat() in _env.\n - the replacement search argument only supports one character.\n - the replacement string can be of any length.\n - "{} =; \n space" cannot be used as a replacement search character because it is an internal reserved word.\n - instead, you can use "{} =; \n space" as the replacement character.\n - this code requires the replace() function.
-htd	convert a contiguous hexadecimal string into a table.	れんそ゛くした 16しんすうもし゛れつを テ-フ゛ルに へんかんします。	htd(b,n)\n- @param  string b  -- consecutive hexadecimal strings (not including 0x).\n- @param  number n  -- number of digits to be split.\n- @return table  -- segmented table.\n\n- @description\n - the number of supported delimited bits is 4,8,12,16 bits (1~4 nibbles).\n - characters that cannot be converted to numbers are ignored.\n - the result of the api's "tonum('0x'. .v)" of the api.\n - depending on the delimiter, a missing last character will result in a lower digit by the number of missing characters.
-inrng	tests that the specified value is within a range.	すうちか゛ はんいないて゛あることを はんていします。	inrng(...)\n- @param  number ...  -- test value\n- @param  number ...  -- lowest value\n- @param  number ...  -- highest value\n- @return boolean  -- if it's within the range\n\n- @description\n - the number of supported delimited bits is 4,8,12,16 bits (1~4 nibbles).\n - characters that cannot be converted to numbers are ignored.\n - the result of the api's "tonum('0x'. .v)" of the api.\n - depending on the delimiter, a missing last character will result in a lower digit by the number of missing characters.
-join	joins strings with a delimiter.	もし゛れつを れんけつします。	join(d,s,...)\n- @param  string d  -- delimiter\n- @param  string s,... -- string to be joined\n- @return string  -- joined string value
-mkpal	create a color swap table for use in pal().	れんそ゛くした 16しんすうもし゛れつて゛ ハ゜レットテ-フ゛ルを さくせいします。	mkpal(p,s,...)\n- @param  any p  -- a "table, or hexadecimal string" containing the color id to be swapped.\n- @param  any s,...  -- a "table, or hexadecimal string" containing the color id to  after swapping.\n- @return table,... -- returns the palette swap table possible with pal(). returns a tuple if there are multiple arguments.\n\n- @description\n - it is not an error if the number of elements in the swap table does not match.
-msplit	converts a string into a table by splitting it with multiple delimiters.	もし゛れつを ふくすうの くき゛りもし゛て゛ ふ゛んかつして テ-フ゛ルに へんかんします。	msplit(s,d,...)\n- @param  string s  -- string to be split.\n- @param  any  d  -- delimiter of division.\n- @param  any  ... -- next delimiter after splitting.\n- @return table  -- table partitioned from string.
-oprint	adds outlines to text and prints them.	もし゛を アウトラインつきて゛ ひ゛ょうか゛ します。	oprint(s,x,y,f,o,p)\n- @param  string s  -- text to display.\n- @param  number x  -- x coordinates.\n- @param  number y  -- y coordinates.\n- @param  number f  -- foreground color.\n- @param  number o  -- outline color.\n- @param  string p  -- p8scii code for decoration (default is outline decoration)\n\n- @description\n - enclosure is not possible if tabs or newlines are included. (in pico8_v0.2.5.g)\n - operation is not guaranteed if "param s" contains decorative p8scii.\n - decorative parameters are "," separated, with the last character ending in a ",".
-rceach	iterate from rectangle values.	くけいテ゛-タて゛ ル-フ゜をします。	rceach(r,f)\n- @param  string|table r  -- rectangle initialization format.\n- @param  function f  -- function(x, y, r) to execute.\n\n  * in a function\n - @param x  number  -- x-coordinate\n - @param y  number  -- y-coordinate\n - @param r  string|table -- argument rectangle format
-replace	perform string substitutions.	もし゛れつを ちかんします。	replace(s,f,r,...)\n- @param  string s  -- target string\n- @param  string f  -- matching string\n- @param  string r  -- string to replace from the matched string\n- @param  string ...  -- next match & replace string\n- @return string  -- replaced string
-tbfill	creates a table filled with the specified values.	していした すうちて゛ うめたテ-フ゛ルを つくります。	tbfill(v,s,e,...)\n- @param  any  v  -- values that satisfy the table.\n- @param  number s  -- index to start.\n- @param  number e  -- index value to end.\n- @param  number ...  -- indexes to start and end the next level of hierarchy.\n- @return table  -- table filled with values. \n\n- @description\n - by specifying additional start and end elements for the tuple, it becomes a multidimensional table.
-tmap	more compact operable foreach iterator.	foreachの ついかきのうは゛ん。	tmap(t,f)\n- @param  table t  -- table to scan\n- @param  function f  -- function(v, i) to execute.\n- @return table  -- table of arguments updated in the function.\n\n- @description\n - execute as many functions as there are elements in the table.\n  the arguments of the function to be executed are the element value, index and key value.\n  passing a return value in the function will update the table elements.\n\n - the basic function to be specified.\n  function(v,i)\n  return r\n  end\n  @param  any v - current table element.\n  @param  any i - index or key of the current table element.\n  @return any r - value to update the current element.
-tohex	converts an integer 10 number to the specified number of hexadecimal digits.	せいすうの10しんすうちを していした けたすうの 16しんすうに へんかんします。	tohex(v,d)\n - tohex  -- converts to a hexadecimal string filled with zeros.\n- @param  number v  -- number to be displayed in hexadecimal.\n- @return number d  -- number of digit justification by zero-filling.\n\n- @description\n - if the number of digits is not specified, specify 0.\n - the maximum number of digits specified is 4.
-ttable	if the argument is a table, the table is returned.	テ-フ゛ルて゛あれは゛テ-フ゛ルを かえし、そうて゛なけれは゛falseを かえします。	ttable(p)\n- @param  any p -- check if it is a table.\n- @return any  -- if it is a table, return the argument, otherwise return false.\n\n- @description\n - determines the type of a variable or argument of indeterminate type.\n - for example, when switching the processing method between string and table.
-dbg	outputs values to the screen regardless of output timing.	しゅつりょくタイミンク゛かんけいなして゛ あたいを か゛めんしゅつりょく します。	dbg(...)\n- @param  any ... -- specify the value you want to display as debugging.\n\n- @description\n - executed with arguments, it stacks values for display.\n - you need to specify 'd?' at the timing you want to display.\n - when the stacked value display is complete, it is reset.
-dmp	dumps information about a variable.	テ-フ゛ルの ないようを ひょうし゛します。	dmp(v)\n- @param  any v  -- value to be displayed, table.
-exrect	generate rect object with extended functionality.	きのうかくちょうしたrectオフ゛シ゛▤クトを せいせいします。	exrect(p)\n- @param  string|table p -- 'x y w h' {x,y,w,h} rectangle data. this argument is retained.\n- @return rect-object - rectangular objects that can be drawn and judged.\n\n- @description\n - drawing the rectangle that the object has.\n - determining the inner bounding box of a rectangle.\n - holding and referencing rectangle data.\n  \n - @function con - determines the inclusions of rectangular objects or coordinates.\n  - @param  rect-object|number p -- if the argument is not only an object, it is determined by x-coordinates.\n  - @param  number y -- y-coordinate\n  - @return bool\n\n - @function hov - determines that the rectangle overlaps.\n  - @param  rect-object r\n  - @param  inversion i -- for recurrence check(the target rectangle is being replaced).\n  - @return bool\n\n - @function ud - rectangle update\n  - @param rect-object|number p -- if it is a number, it is assumed to be an x coordinate. for strings and tables, it is treated in the same way as initialization "exrect".\n  - @param number y -- y-coordinate\n  - @param number w -- width\n  - @param number h -- height\n  - @return rect-object -- own-object\n\n - @function rs - draw rect\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function rf - draw rectfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function cs - draw circ\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function cf - draw circfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function os - draw oval\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function of - draw ovalfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object
-mkscenes	create a multitasking scene object.	マルチタスクの シ-ンオフ゛シ゛▤クトを さくせいします。	mkscenes( keys )\n- @param  any keys  -- scene name table(table / space-separated string).\n- @return table  -- scene object table for scanning.\n\n- @description\n - look for knutil on lexalofflebbs.
+amid	mid with positive and negative of the specified number.	していした すうちの「せい」と「ふ」て゛midを おこないます。	amid(...)\n- @param  number ... -- absolute upper and lower limits, which are treated as positive and negative numbers.\n- @param  number ... -- value to be tested as median.\n- @return number  -- value within the range specified by the first argument.\n\n- @description\n - it is used in controlling the camera and parameters that can swing either + or -.			mid with positive and negative of the specified number.	amid(...)
+bpack	pack the value of the bit specification with bit width.	ふくすうの「bitち」をしていして ひとつの すうちに つめます。	bpack(w,s,b,...)\n- @param  table  w  -- bit width table for packing.\n- @param  number s  --  bit value to be shifted to the left before the first pack.\n- @param  number b  -- the value to pack.\n- @param  number ... -- bit width to the next pack.\n- @return number  -- packed value.\n\n- @description\n - by packs in the direction of low bits when multiple bit values are specified.\n - by setting [number s] to a negative value, bit pack can be started from the decimal point.\n - if there are fewer bit-width elements relative to the value to be packed, the bit-width elements are rotated.			pack the value of the bit specification with bit width.	bpack(w,s,b,...)
+bunpack	slice the value with bit width.	「bitはは゛」を していして ひとつのすうちを ふ゛んかつして かえします。	bunpack(b,s,w,...) \n- @param  number b  -- the value to slice.\n- @param  number s  -- bit value to left-shift before the first slice.\n- @param  number w  -- bit width to the first slice.\n- @param  number ... -- bit width to the next slices.\n- @return ...  -- sliced value as a tuple.\n\n- @description\n - by specifying the argument after [number w], a value of up to 32 bits can be sliced.\n - by setting [number s] to a negative value, bit slice can be started from the decimal point.			slice the value with bit width.	bunpack(b,s,w,...) 
+cat	concatenate tables. indexes are added last and identical keys are overwritten.	テ-フ゛ルの れんけつを します。	cat(f,...)\n- @param  table f  -- add destination table.\n- @param  table ... -- next table to add.\n- @return table  -- concatenated table.			concatenate tables. indexes are added last and identical keys are overwritten.	cat(f,...)
+comb	combines two tables to create a hash table.	キ-のテ-フ゛ルと あたいのテ-フ゛ルから れんそうはいれつテ-フ゛ルを さくせいします。	comb(k,v)\n- @param  table k  -- key string table.\n- @param  table b  -- value tables.\n- @return table  -- table of associative arrays.			combines two tables to create a hash table.	comb(k,v)
+ecpalt	transparency setting from the color table.	カラ-テ-フ゛ルから とうめいせっていを します。	ecpalt(p)\n- @param  table p  -- table of colors to be transparent.\n\n- @description\n - transparency is reset at each function execution.\n - if the value of the "color id key" in the palette table is 0, the palette becomes transparent.\n - the palette that was made black by mkpal() can be used as transparent as it is.\n - the format is redundant due to the specification to match mkpalt().			transparency setting from the color table.	ecpalt(p)
+htbl	creates a multi-variable table from a string. can be used in conjunction with string replacement.	もし゛れつから たようなテ-フ゛ルを さくせいします。もし゛れつちかんの へいよう あり。	htbl(s,...)\n- @param  string s  -- parsing character string.\n- @param  string ... -- specify the target character and the string to be replaced, alternating consecutively.\n- @return table  -- generated table.\n\n- @description\n - a single string can initialize many values.\n - returns at least an empty table.\n - elements can be added space-separated. (the space character cannot be used as a value.)\n - spaces can be replaced with \t.\n - newline codes are ignored.\n - newline can be replaced with \r.\n - {} specifies a table.\n - key=val; key{val} specifies the key and value of the table.\n - if you enclose an empty string, the element will become nil.\n - to initialize with an empty string, use /0/.\n - bool values, nil, and hexadecimal strings are automatically normalized.\n - the first layer can be initialized with global values by using cat() in _env.\n - the replacement search argument only supports one character.\n - the replacement string can be of any length.\n - "{} =; \n space" cannot be used as a replacement search character because it is an internal reserved word.\n - instead, you can use "{} =; \n space" as the replacement character.\n - this code requires the replace() function.			creates a multi-variable table from a string. can be used in conjunction with string replacement.	htbl(s,...)
+htd	convert a contiguous hexadecimal string into a table.	れんそ゛くした 16しんすうもし゛れつを テ-フ゛ルに へんかんします。	htd(b,n)\n- @param  string b  -- consecutive hexadecimal strings (not including 0x).\n- @param  number n  -- number of digits to be split.\n- @return table  -- segmented table.\n\n- @description\n - the number of supported delimited bits is 4,8,12,16 bits (1~4 nibbles).\n - characters that cannot be converted to numbers are ignored.\n - the result of the api's "tonum('0x'. .v)" of the api.\n - depending on the delimiter, a missing last character will result in a lower digit by the number of missing characters.			convert a contiguous hexadecimal string into a table.	htd(b,n)
+inrng	tests that the specified value is within a range.	すうちか゛ はんいないて゛あることを はんていします。	inrng(...)\n- @param  number ...  -- test value\n- @param  number ...  -- lowest value\n- @param  number ...  -- highest value\n- @return boolean  -- if it's within the range\n\n- @description\n - the number of supported delimited bits is 4,8,12,16 bits (1~4 nibbles).\n - characters that cannot be converted to numbers are ignored.\n - the result of the api's "tonum('0x'. .v)" of the api.\n - depending on the delimiter, a missing last character will result in a lower digit by the number of missing characters.			tests that the specified value is within a range.	inrng(...)
+join	joins strings with a delimiter.	もし゛れつを れんけつします。	join(d,s,...)\n- @param  string d  -- delimiter\n- @param  string s,... -- string to be joined\n- @return string  -- joined string value\n\n- @description\n - a nil argument returns an empty string.			joins strings with a delimiter.	join(d,s,...)
+mkpal	create a color swap table for use in pal().	れんそ゛くした 16しんすうもし゛れつて゛ ハ゜レットテ-フ゛ルを さくせいします。	mkpal(p,s,...)\n- @param  any p  -- a "table, or hexadecimal string" containing the color id to be swapped.\n- @param  any s,...  -- a "table, or hexadecimal string" containing the color id to  after swapping.\n- @return table,... -- returns the palette swap table possible with pal(). returns a tuple if there are multiple arguments.\n\n- @description\n - it is not an error if the number of elements in the swap table does not match.			create a color swap table for use in pal().	mkpal(p,s,...)
+msplit	converts a string into a table by splitting it with multiple delimiters.	もし゛れつを ふくすうの くき゛りもし゛て゛ ふ゛んかつして テ-フ゛ルに へんかんします。	msplit(s,d,...)\n- @param  string s  -- string to be split.\n- @param  any  d  -- delimiter of division.\n- @param  any  ... -- next delimiter after splitting.\n- @return table  -- table partitioned from string.			converts a string into a table by splitting it with multiple delimiters.	msplit(s,d,...)
+oprint	adds outlines to text and prints them.	もし゛を アウトラインつきて゛ ひ゛ょうか゛ します。	oprint(s,x,y,f,o,p)\n- @param  string s  -- text to display.\n- @param  number x  -- x coordinates.\n- @param  number y  -- y coordinates.\n- @param  number f  -- foreground color.\n- @param  number o  -- outline color.\n- @param  string p  -- p8scii code for decoration (default is outline decoration)\n\n- @description\n - enclosure is not possible if tabs or newlines are included. (in pico8_v0.2.5.g)\n - operation is not guaranteed if "param s" contains decorative p8scii.\n - decorative parameters are "," separated, with the last character ending in a ",".			adds outlines to text and prints them.	oprint(s,x,y,f,o,p)
+rceach	iterate from rectangle values.	くけいテ゛-タて゛ ル-フ゜をします。	rceach(r,f)\n- @param  string|table r  -- rectangle initialization format.\n- @param  function f  -- function(x, y, r) to execute.\n\n  * in a function\n - @param x  number  -- x-coordinate\n - @param y  number  -- y-coordinate\n - @param r  string|table -- argument rectangle format			iterate from rectangle values.	rceach(r,f)
+replace	perform string substitutions.	もし゛れつを ちかんします。	replace(s,f,r,...)\n- @param  string s  -- target string\n- @param  string f  -- matching string\n- @param  string r  -- string to replace from the matched string\n- @param  string ...  -- next match & replace string\n- @return string  -- replaced string			perform string substitutions.	replace(s,f,r,...)
+tbfill	creates a table filled with the specified values.	していした すうちて゛ うめたテ-フ゛ルを つくります。	tbfill(v,s,e,...)\n- @param  any  v  -- values that satisfy the table.\n- @param  number s  -- index to start.\n- @param  number e  -- index value to end.\n- @param  number ...  -- indexes to start and end the next level of hierarchy.\n- @return table  -- table filled with values. \n\n- @description\n - by specifying additional start and end elements for the tuple, it becomes a multidimensional table.			creates a table filled with the specified values.	tbfill(v,s,e,...)
+tmap	more compact operable foreach iterator.	foreachの ついかきのうは゛ん。	tmap(t,f)\n- @param  table t  -- table to scan\n- @param  function f  -- function(v, i) to execute.\n- @return table  -- table of arguments updated in the function.\n\n- @description\n - execute as many functions as there are elements in the table.\n  the arguments of the function to be executed are the element value, index and key value.\n  passing a return value in the function will update the table elements.\n\n - the basic function to be specified.\n  function(v,i)\n  return r\n  end\n  @param  any v - current table element.\n  @param  any i - index or key of the current table element.\n  @return any r - value to update the current element.			more compact operable foreach iterator.	tmap(t,f)
+tohex	converts an integer 10 number to the specified number of hexadecimal digits.	せいすうの10しんすうちを していした けたすうの 16しんすうに へんかんします。	tohex(v,d)\n - tohex  -- converts to a hexadecimal string filled with zeros.\n- @param  number v  -- number to be displayed in hexadecimal.\n- @return number d  -- number of digit justification by zero-filling.\n\n- @description\n - if the number of digits is not specified, specify 0.\n - the maximum number of digits specified is 4.			converts an integer 10 number to the specified number of hexadecimal digits.	tohex(v,d)
+ttable	if the argument is a table, the table is returned.	テ-フ゛ルて゛あれは゛テ-フ゛ルを かえし、そうて゛なけれは゛falseを かえします。	ttable(p)\n- @param  any p -- check if it is a table.\n- @return any  -- if it is a table, return the argument, otherwise return false.\n\n- @description\n - determines the type of a variable or argument of indeterminate type.\n - for example, when switching the processing method between string and table.			if the argument is a table, the table is returned.	ttable(p)
+dbg	outputs values to the screen regardless of output timing.	しゅつりょくタイミンク゛かんけいなして゛ あたいを か゛めんしゅつりょく します。	dbg(...)\n- @param  any ... -- specify the value you want to display as debugging.\n\n- @description\n - executed with arguments, it stacks values for display.\n - you need to specify 'd?' at the timing you want to display.\n - when the stacked value display is complete, it is reset.			Outputs values to the screen regardless of output timing.	dbg(...)
+dmp	dumps information about a variable.	テ-フ゛ルの ないようを ひょうし゛します。	dmp(v)\n- @param  any v  -- value to be displayed, table.			dumps information about a variable.	dmp(v)
+exrect	generate rect object with extended functionality.	きのうかくちょうしたRECTオフ゛シ゛▤クトを せいせいします。	exrect(p)\n- @param  string|table p -- 'x y w h' {x,y,w,h} rectangle data. this argument is retained.\n- @return rect-object - rectangular objects that can be drawn and judged.\n\n- @description\n - drawing the rectangle that the object has.\n - determining the inner bounding box of a rectangle.\n - holding and referencing rectangle data.\n  \n - @function con - determines the inclusions of rectangular objects or coordinates.\n  - @param  rect-object|number p -- if the argument is not only an object, it is determined by x-coordinates.\n  - @param  number y -- y-coordinate\n  - @return bool\n\n - @function hov - determines that the rectangle overlaps.\n  - @param  rect-object r\n  - @param  inversion i -- for recurrence check(the target rectangle is being replaced).\n  - @return bool\n\n - @function ud - rectangle update\n  - @param rect-object|number p -- if it is a number, it is assumed to be an x coordinate. for strings and tables, it is treated in the same way as initialization "exrect".\n  - @param number y -- y-coordinate\n  - @param number w -- width\n  - @param number h -- height\n  - @return rect-object -- own-object\n\n - @function rs - draw rect\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function rf - draw rectfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function cs - draw circ\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function cf - draw circfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function os - draw oval\n  - @param number col -- drawing color\n  - @return rect-object -- own-object\n\n - @function of - draw ovalfill\n  - @param number col -- drawing color\n  - @return rect-object -- own-object			generate rect object with extended functionality.	exrect(p)
+mkscenes	create a multitasking scene object.	マルチタスクの シ-ンオフ゛シ゛▤クトを さくせいします。	mkscenes( keys )\n- @param  any keys  -- scene name table(table / space-separated string).\n- @return table  -- scene object table for scanning.\n\n- @description\n - look for knutil on lexalofflebbs.			Create a multitasking scene object.	mkscenes( keys )
 ]],"\n","\t")
 scmd([[
 	library st draw_library 0
@@ -876,6 +878,17 @@ end
 --[[
 update history
 **v0.15.0**
+- update snippets
+	- bpack[v0.2],bunpack[v0.2a],htbl[v0.5b],htd[v0.1-short],join[v0.3a],oprint[v0.4],replace[v0.2-short]
+	- exrect[v0.2]
+- scenes:
+	- mkscenes(): support for space-separated strings in initialization arguments.
+	- transition():
+	- env(): change foreach to for (faster).
+	- tra(): order can be specified directly as an argument for parallel processing (index specification is abolished).
+	- [remove]
+	- cu(): => ords[1]
+- diagram: fixed display flickering when parallel processing.
 
 **v0.14.0**
 - amid:change the order of arguments.
@@ -900,7 +913,7 @@ update history
 - parallel added to diagram production.
 - correction of library documentation.
 
-- [deleted]:
+- [removed]:
  - toc
  - tonorm
  - ecmkpal
@@ -1222,62 +1235,62 @@ __label__
 94994949494949494999494994900000cddddddddcdddcddcdcdcdcddcdddddddcddcdcdcdcdcdcdddcddcdddcdddcddcdcdcdcdddddddcddddddddddddddddc
 94994949449949494499449994900000cdddddddddcddcddcdcdcdcdcddddddddcddcdcdcdcdcdcdccddcccddcddcccdccddcdcdddddddcddddddddddddddddc
 94994949494949494999494994990000cddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddc
-49994499494944494449494999490000cddddddddddddddddddddddddddddddddddddccdcccdccddcccdcccdddddccddcdddcdddddcdcccdcccdcccddddddddc
-99099999999999999999999909990000cdddddddddddddddddddddddddddddddddddcdcdcdcdcdcdcdddcdcddddddcddcdddcddddcddddcdcdcdcdcddddddddc
-49900009944944494499000099490000cdddddddddddddddddddddddddddddddddddcdcdccddcdcdccddccdddddddcddcccdcccddcddcccdcdcdcdcddddddddc
-94900009499944494949000094990000cdddddddddddddddddddddddddddddddddddcdcdcdcdcdcdcdddcdcddddddcddcdcdcdcddcddcdddcdcdcdcddddddddc
+49994499494944494449494999490000cddddddddddddddddddddddddddddddddddddccdcccdccddcccdcccdddddccddcccdcccdddcdcccdcccdcccddddddddc
+99099999999999999999999909990000cdddddddddddddddddddddddddddddddddddcdcdcdcdcdcdcdddcdcddddddcddddcdcdcddcddddcdcdcdcdcddddddddc
+49900009944944494499000099490000cdddddddddddddddddddddddddddddddddddcdcdccddcdcdccddccdddddddcddcccdcdcddcddcccdcdcdcdcddddddddc
+94900009499944494949000094990000cdddddddddddddddddddddddddddddddddddcdcdcdcdcdcdcdddcdcddddddcddcdddcdcddcddcdddcdcdcdcddddddddc
 94900009490949494949000094900000cdddddddddddddddddddddddddddddddddddccddcdcdcccdcccdcdcdddddcccdcccdcccdcdddcccdcccdcccddddddddc
 94990009499949494949000994900000cddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddc
 99490009944949494449000949900000cddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddc
 09990000999999999999000999000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-00000000000000000000000000000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-00000000000000000000000000000000cddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddc
-00000000000000000000000000000000cdddddddddcdcccdcccdcccdcdddddddcccdcccdcccdccdddccdcccdcccdcccddccdccddddddcccddddddddddddddddc
-00000000000000000000000000000000cddddddddcdddcddcdcdcdcddcdddddddcddcdcdcdcdcdcdcddddcdddcdddcddcdcdcdcdddddddcddddddddddddddddc
-11101010011010100000000000000000cdddddddcddddcddccddcccdddcddddddcddccddcccdcdcdcccddcdddcdddcddcdcdcdcddddddccddddddddddddddddc
-10101010100010100000000000000000cddddddddcdddcddcdcdcdcddcdddddddcddcdcdcdcdcdcdddcddcdddcdddcddcdcdcdcdddddddcddddddddddddddddc
-11101010111011100000000000000000cdddddddddcddcddcdcdcdcdcddddddddcddcdcdcdcdcdcdccddcccddcddcccdccddcdcdddddcccddddddddddddddddc
-10001010001010100000000000000000cddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddc
-10000110110010100000000000000000cddddddddddddddddddddddddddddddddddddccdcccdccddcccdcccdddddcccdcccdddcdcccdcccdcccddddddddddddc
-00000000000000000000000000000000cdddddddddddddddddddddddddddddddddddcdcdcdcdcdcdcdddcdcdddddcdcdddcddcddddcdcdcdcdcddddddddddddc
-00000000000000000000000000000000cdddddddddddddddddddddddddddddddddddcdcdccddcdcdccddccddddddcccddccddcddcccdcdcdcdcddddddddddddc
-00000000000000000000000000000000cdddddddddddddddddddddddddddddddddddcdcdcdcdcdcdcdddcdcdddddddcdddcddcddcdddcdcdcdcddddddddddddc
-10101100011010101110111011100000cdddddddddddddddddddddddddddddddddddccddcdcdcccdcccdcdcdddddddcdcccdcdddcccdcccdcccddddddddddddc
-10101010100010100100100001000000cddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddc
-10101010111011100100110001000000cddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddc
-10101010001010100100100001000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-01101010110010101110100001000000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-00000000000000000000000000000000a9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999a
-00000000000000000000000000000000a999999999a9aaa9aaa9aaa9a9999999aaa9aaa9aaa9aa999aa9aaa9aaa9aaa99aa9aa999999aa99999999999999999a
-00000000000000000000000000000000a99999999a999a99a9a9a9a99a9999999a99a9a9a9a9a9a9a9999a999a999a99a9a9a9a999999a99999999999999999a
-ccc0ccc0ccc0ccc0c000c000ccc0c000a9999999a9999a99aa99aaa999a999999a99aa99aaa9a9a9aaa99a999a999a99a9a9a9a999999a99999999999999999a
-c0c0c0c0c0c0c0c0c000c000c000c000a99999999a999a99a9a9a9a99a9999999a99a9a9a9a9a9a999a99a999a999a99a9a9a9a999999a99999999999999999a
-ccc0ccc0cc00ccc0c000c000cc00c000a999999999a99a99a9a9a9a9a99999999a99a9a9a9a9a9a9aa99aaa99a99aaa9aa99a9a99999aaa9999999999999999a
-c000c0c0c0c0c0c0c000c000c000c000a9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999a
-c000c0c0c0c0c0c0ccc0ccc0ccc0ccc0a999999999999999999999999999999999999aa9aaa9aa99aaa9aaa99999aa99aaa9a9a999a9aaa9aaa9aaa99999999a
-00000000000000000000000000000000a99999999999999999999999999999999999a9a9a9a9a9a9a999a9a999999a9999a9a9a99a9999a9a9a9a9a99999999a
-00000000000000000000000000000000a99999999999999999999999999999999999a9a9aa99a9a9aa99aa9999999a999aa9aaa99a99aaa9a9a9a9a99999999a
-00000000000000000000000000000000a99999999999999999999999999999999999a9a9a9a9a9a9a999a9a999999a9999a999a99a99a999a9a9a9a99999999a
-01101000111011101110000000000000a99999999999999999999999999999999999aa99a9a9aaa9aaa9a9a99999aaa9aaa999a9a999aaa9aaa9aaa99999999a
-10001000100010101010000000000000a9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999a
-10001000110011101100000000000000a9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999a
-10001000100010101010000000000000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-01101110111010101010000000000000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-00000000000000000000000000000000a9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999a
-00000000000000000000000000000000a999999999a9aaa9aaa9aaa9a9999999aaa9aaa9aaa9aa999aa9aaa9aaa9aaa99aa9aa999999aaa9999999999999999a
-00000000000000000000000000000000a99999999a999a99a9a9a9a99a9999999a99a9a9a9a9a9a9a9999a999a999a99a9a9a9a9999999a9999999999999999a
-00000000000000000000000000000000a9999999a9999a99aa99aaa999a999999a99aa99aaa9a9a9aaa99a999a999a99a9a9a9a99999aaa9999999999999999a
-00000000000000000000000000000000a99999999a999a99a9a9a9a99a9999999a99a9a9a9a9a9a999a99a999a999a99a9a9a9a99999a999999999999999999a
-00000000000000000000000000000000a999999999a99a99a9a9a9a9a99999999a99a9a9a9a9a9a9aa99aaa99a99aaa9aa99a9a99999aaa9999999999999999a
-00000000000000000000000000000000a9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999a
-00000000000000000000000000000000a999999999999999999999999999999999999aa9aaa9aa99aaa9aaa99999aaa9aaa999a9aaa9aaa9aaa999999999999a
-00000000000000000000000000000000a99999999999999999999999999999999999a9a9a9a9a9a9a999a9a99999a99999a99a9999a9a9a9a9a999999999999a
-00000000000000000000000000000000a99999999999999999999999999999999999a9a9aa99a9a9aa99aa999999aaa99aa99a99aaa9a9a9a9a999999999999a
-00000000000000000000000000000000a99999999999999999999999999999999999a9a9a9a9a9a9a999a9a9999999a999a99a99a999a9a9a9a999999999999a
-00000000000000000000000000000000a99999999999999999999999999999999999aa99a9a9aaa9aaa9a9a99999aaa9aaa9a999aaa9aaa9aaa999999999999a
-00000000000000000000000000000000a9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999a
-00000000000000000000000000000000a9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999a
-00000000000000000000000000000000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+00000000000000000000000000000000999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+00000000000000000000000000000000944444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444449
+00000000000000000000000000000000944444444444444444444444444449949994999449949494444449949994994499949994444499444444444444444449
+00000000000000000000000000000000944444444444444444444444444494444944949494449494444494949494949494449494444449444444444444444449
+33303030033030300000000000000000944444444444444444444444444499944944999494449944444494949944949499449944444449444444444444444449
+30303030300030300000000000000000944444444444444444444444444444944944949494449494444494949494949494449494444449444444444444444449
+33303030333033300000000000000000944444444444444444444444444499444944949449949494444499449494999499949494444499944444444444444449
+30003030003030300000000000000000999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+30000330330030300000000000000000999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+00000000000000000000000000000000944444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444449
+00000000000000000000000000000000944444444444444444444444444449949994999449949494444449949994994499949994444499944444444444444449
+00000000000000000000000000000000944444444444444444444444444494444944949494449494444494949494949494449494444444944444444444444449
+b0b0bb000bb0b0b0bbb0bbb0bbb00000944444444444444444444444444499944944999494449944444494949944949499449944444499944444444444444449
+b0b0b0b0b000b0b00b00b0000b000000944444444444444444444444444444944944949494449494444494949494949494449494444494444444444444444449
+b0b0b0b0bbb0bbb00b00bb000b000000944444444444444444444444444499444944949449949494444499449494999499949494444499944444444444444449
+b0b0b0b000b0b0b00b00b0000b000000999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+0bb0b0b0bb00b0b0bbb0b0000b000000999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+00000000000000000000000000000000944444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444449
+00000000000000000000000000000000944444444444444444444444444449949994999449949494444449949994994499949994444499944444444444444449
+00000000000000000000000000000000944444444444444444444444444494444944949494449494444494949494949494449494444444944444444444444449
+33303330333033303000300033303000944444444444444444444444444499944944999494449944444494949944949499449944444449944444444444444449
+30303030303030303000300030003000944444444444444444444444444444944944949494449494444494949494949494449494444444944444444444444449
+33303330330033303000300033003000944444444444444444444444444499444944949449949494444499449494999499949494444499944444444444444449
+30003030303030303000300030003000999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+30003030303030303330333033303330200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+03303000333033303330000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+30003000300030303030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+30003000330033303300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+30003000300030303030000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+03303330333030303030000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
 00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -1320,10 +1333,10 @@ c000c0c0c0c0c0c0ccc0ccc0ccc0ccc0a999999999999999999999999999999999999aa9aaa9aa99
 00000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
 00000000000000000000000000000000200000000000000000000000000000000000000000000220022022202200222000000220222022002220222002200002
 77777777000777777777000777770000000000000000000000000000000000000000000000002000200020002020200000002020202020202000202020000000
-57575557000755775757000755570000000000000000000000000000000000000000000000002220200022002020220000002020220020202200220022200000
-57575757000775775757000757570000200000000000000000000000000000000000000000000020200020002020200000002020202020202000202000200002
+57575557000755775557000755570000000000000000000000000000000000000000000000002220200022002020220000002020220020202200220022200000
+57575757000775775777000757570000200000000000000000000000000000000000000000000020200020002020200000002020202020202000202000200002
 57575757000075775557000757570000200000000000000000000000000000000000000000002200022022202020222000002200202022202220202022000002
 55575757777775777757777757570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-75775557757755570757757755570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-77777777777777770777777777770000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+75775557757755575557757755570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+77777777777777777777777777770000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
 
