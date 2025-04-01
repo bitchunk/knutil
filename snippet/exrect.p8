@@ -1,8 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
-version 41
+version 42
 __lua__
 --exrect
---v0.1
+--v0.2
 --@shiftalow / bitchunk
 
 --[[
@@ -70,7 +70,7 @@ _mkrs,_hovk,_mnb=split'x,y,w,h,ex,ey,r,p'
 ,split'con,hov,ud,rs,rf,cs,cf,os,of,cam'
 function _rfmt(p)
 local x,y,w,h=unpack(type(p)=='table' and p or split(p,' ',true))
-return comb(_mkrs,{x,y,w,h,x+w-1,y+h-1,w/2,p})
+return comb(_mkrs,{x,y,w,h,x+w-mid(w,1,-1),y+h-mid(h,1,-1),w/2,p})
 end
 
 function exrect(p)
@@ -129,16 +129,16 @@ return a
 end
 
 function cat(f,...)
-foreach({...},function(s)
-for k,v in pairs(s) do
-if tonum(k) then
-add(f,v)
-else
-f[k]=v
-end
-end
-end)
-return f
+	for s in all({...}) do
+		for k,v in pairs(s) do
+			if tonum(k) then
+				add(f,v)
+			else
+				f[k]=v
+			end
+		end
+	end
+	return f
 end
 
 aspect=1
@@ -217,10 +217,13 @@ function _draw()
 end
 
 -->8
+--update history
 --[[
-update history
+**v0.2**
+- negative magnitudes supported
+
 **v0.1**
-	- first release
+- first release
 ]]--
 
 __gfx__

@@ -1,8 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
-version 41
+version 42
 __lua__
 --msplit
---v0.1
+--v0.2
 --@shiftalow / bitchunk
 
 --[[
@@ -16,6 +16,7 @@ __lua__
 		-- the default delimiters and numeric conversion flags should be modified according to your project.
 ]]--
 
+
 function msplit(s,d,...)
 local t=split(s,d or ' ',false)
 if ... then
@@ -24,6 +25,15 @@ t[i]=msplit(v,...)
 end
 end
 return t
+end
+
+--0.2 pending...
+function msplit(s,d,...)
+	local t=split(s,d or ' ',false)
+	for i,v in pairs(... and t) do
+		t[i]=msplit(v,...)
+	end
+	return t
 end
 
 ----
@@ -55,9 +65,9 @@ local value
 							'1048185007204a28520c3054386a0a406070680f'
 							,20,10,2
 						)
-for c,r in pairs(value) do
-	for b,t in pairs(r) do
-		for i,v in pairs(t) do
+for r in all(value) do --rects
+	for t in all(r) do --drawparams(hexadecimal)
+		for i,v in pairs(t) do --sx,sy,ex,ey,col
 			-- convert hexadecimal numbers
 			t[i]=tonum('0x'..v)
 		end
@@ -69,8 +79,11 @@ end
 -->8
 --[[
 update history
+**v0.2**
+- do multidimensional checks on pairs arguments.
+
 **v0.1**
-	- first release
+- first release.
 ]]--
 
 __gfx__
