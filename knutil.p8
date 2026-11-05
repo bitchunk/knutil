@@ -48,6 +48,7 @@ function ecpalt(p)
 	end)
 end
 
+--!!nil become string 'nil'
 function htbl(s,...)
 	local t,k={}
 	s,_htblc=split(s,"") or s,_htblc or 1
@@ -59,7 +60,7 @@ function htbl(s,...)
 			if not k then
 				add(t,r)
 			else
-				t[k],k=p=="{" and r or r[1]
+				t[tonum(k) or k],k=p=="{" and r or r[1]
 			end
 		elseif not p or p=="}" or p==";" or p==" " then
 			add(t,k~="false" and (k=="true" or tonum(k) or k=="/0/" and "" or k))
@@ -68,7 +69,7 @@ function htbl(s,...)
 				break
 			end
 		elseif p~="\n" then
-			k=(k or "")..(... and replace(p..'',...) or replace(p..'',"\r","\n","\t"," "))
+			k=(k or "")..(... and replace(p..'',...) or p)
 		end
 	end
 	return t
@@ -170,10 +171,10 @@ end
 --exrect
 _mkrs,_hovk,_mnb=htbl'x y w h ex ey r p'
 ,htbl'{x y}{x ey}{ex y}{ex ey}'
-,htbl'con hov ud rs rf cs cf os of cam'
+,htbl'con hov ud rs rf cs cf os of clip'
 function _rfmt(p)
 local x,y,w,h=unpack(ttable(p) or split(p,' ',true))
-return comb(_mkrs,{x,y,w,h,x+w-mid(w,1,-1),y+h-mid(h,1,-1),w/2,p})
+return comb(_mkrs,{x,y,w,h,x+w-1,y+h-1,w/2,p})
 end
 
 function exrect(p)
@@ -181,7 +182,9 @@ local o=_rfmt(p)
 return cat(o,comb(_mnb,{
 function(p,y)
 if y then
-return inrng(p,o.x,o.ex) and inrng(y,o.y,o.ey)
+local cx,cy=camera()
+camera(cx,cy)
+return inrng(p+cx,o.x,o.ex) and inrng(y+cy,o.y,o.ey)
 else
 return o.con(p.x,p.y) and o.con(p.ex,p.ey)
 end
@@ -198,16 +201,15 @@ return cat(
 o,_rfmt((tonum(p) or not p) and {p or o.x,y or o.y,w or o.w,h or o.h} or p
 ))
 end
-,function(col,f)
-local c=o.cam
-f=(f or rect)(o.x-c.x,o.y-c.y,o.ex-c.x,o.ey-c.y,col)
+,function(col,r,f)
+f=(f or rrect)(o.x,o.y,o.w,o.h,r or 0,col)
 return o
 end
-,function(col)
-return o.rs(col,rectfill)
+,function(col,r)
+return o.rs(col,r,rrectfill)
 end
 ,function(col,f)
-(f or circ)(o.x+o.r-o.cam.x,o.y+o.r-o.cam.y,o.w/2,col)
+(f or circ)(o.x+o.r,o.y+o.r,o.w/2,col)
 return o
 end
 ,function(col)
@@ -219,7 +221,9 @@ end
 ,function(col)
 return o.rs(col,ovalfill)
 end
-,{x=0,y=0}
+,function()
+clip(o.x,o.y,o.w,o.h)
+end
 }))
 end
 
@@ -228,10 +232,10 @@ _odkey=split'_rate,_cnt,_rm,_fst,_lst,_nm,_dur,_prm'
 function scorder(...)
 local o={}
 return cat(o,comb(_odkey,{
-function(d,r,c)
-local f,t=unpack(ttable(d) or msplit(d))
-r=max(r or _dur,1)
-return min(c or _cnt,r)/max(r,1)*(t-f)+f
+function(r,d,c)
+local f,t=unpack(ttable(r) or msplit(r))
+d=max(d or _dur,_dur)
+return min(c or _cnt,d)/max(d,1)*(t-f)+f
 end
 ,0,false,true,false
 ,...
@@ -397,16 +401,33 @@ function key_order(o)
 	item_index=mid(item_index,1,#items)
 --	dbg(cnt)
 	if btnp(🅾️) then
+		order_cnt+=1
 		({
 			function()
-				scmd[[
-					push ps push_order 40
-				]]
+				scmd(
+					[[
+						push ps push_order 40
+					]],
+					htbl(
+						[[id=*;cmd=ps;num=0;len=+;]]
+						,'*'
+						,order_cnt
+						,'+'
+						,#_scal.transition.ords
+					)
+				)
 				end,
 			function()
-				scmd[[
-					unshift ps unshift_order 40
-				]]
+				scmd(
+					[[
+						unshift ps unshift_order 40
+					]],
+					htbl(
+						[[id=*;cmd=us;]]
+						,'*'
+						,order_cnt
+					)
+				)
 			end,
 			function()
 				isparallel=not isparallel
@@ -434,7 +455,7 @@ end
 function draw_items( o )
 	oprint('knutil scene orders diagram',8,8,1,12)
 	oprint("/order\\\n\\ cmd /",0,20,4,9)
---	oprint([[\ cmd /]],0,26,4,9)
+
 	tmap(items,function(v,i)
 		if isparallel then
 			?v,0,i*8+28,i==item_index and 12 or 1
@@ -446,20 +467,18 @@ end
 
 function push_order(o)
 	if _fst then
-		order_cnt+=1
-		_prm={}
-		_prm.r=exrect'32 128 96 16'
-		_prm.id=order_cnt
-		_prm.cmd='ps'
---		_prm.num=max(#_scal.task.ords-1,0)
-		_prm.num=0
-		_prm.len=_prm.cmd=='ps' and #_scal.transition.ords or 1
+		cat(_prm,{
+			r=exrect'32 128 96 16',
+--			len=_prm.cmd=='ps'
+--			 and #_scal.transition.ords
+--			  or 1,
+		})
 	end
 	local h=isparallel and 16 or 8
 	local y=ceil(_rate('128 '..24+_prm.len*h+_prm.num*h))
 
 	_prm.r.ud(nil,y
-		,nil,_rate({16,8})
+		,nil,_rate('16 8')
 	).rf(9)
 	?'<ps> push order',_prm.r.x+8,_prm.r.y+_rate'5 1',4
 
@@ -470,13 +489,11 @@ end
 
 function unshift_order(o)
 	if _fst then
-		order_cnt+=1
-		_prm={}
-		_prm.r=exrect'32 -32 96 8'
-		_prm.id=order_cnt
-		_prm.cmd='us'
+		cat(_prm,{
+			r=exrect'32 -32 96 8',
+		})
 	end
-	local y=ceil(_rate({-32,24}))
+	local y=ceil(_rate('-32 24'))
 	_prm.r.ud(nil,y)
 	.rf(1).rs(13)
 	print("<us> unshift order ".._prm.id
@@ -491,38 +508,9 @@ function unshift_order(o)
 	end
 end
 
-function stacked(o)
-	local os=_scal.transition.ords
-	local len=#os
-
-	fillp(0x6996)
-	exrect'32 16 96 128'.rs(2)
-	?'scene orders',76,120
-	fillp()
-
-	if isparallel then
-	else
---		tmap({unpack(os,2)},function(v,i)
-		tmap(os,function(v,i)
-			local prm=v._prm or _prm
-			local r,p,f,s=prm.r,prm.cmd=='ps'
-			if r then
-				if p then
-					f,s=4,9
-				else
-					f,s=5,13
-				end
-					r.rf(f).rs(s)
-					print("     stack order "..prm.id,r.x+8,r.y+2,s)
-			end
-		end)
-	end
-end
-
 function transition_order(o)
 	local cmd=_prm.cmd=='ps'
-	local recnt=_cnt-(_prm.res or 0)
-
+	local recnt=(_cnt-(_prm.res or 0))*8
 	local h=isparallel and 16 or 8
 	local os=_scal.transition.ords
 	local ro=_scal.remove.ords
@@ -533,17 +521,17 @@ function transition_order(o)
 
 		local r=v._prm and v._prm.r or _prm.r
 		i-=1
-		local y=isparallel and i*h or i*h
+		local y=i*h
 		r.ud(nil,_rate(
 			cmd and {y+32,y+32-h}
-				or {y+16,y+32-h}
+				or {y+16+(_prm.res and 16 or 0),y+32-h}
 			,8,recnt)
 		,nil,h)
 	end)
 
 	local rc=_prm.r
 	local y=_rate({rc.y,_prm.y or 16},32,recnt)
-	local h=_rate({8,16},16,recnt)
+	local h=_rate('8 16',16,recnt)
 	local f,s
 	
 	if cmd then
@@ -566,8 +554,6 @@ end
 
 function remove_order(o)
 	if _fst then
---	dmp(_scal.transition.ords)
---	dmp(#_scal.remove.ords)
 		if not isparallel then
 			scmd[[
 				transition us nil 120
@@ -580,6 +566,36 @@ function remove_order(o)
 	rc.ud(_cnt+32).rs(8)
 	print("<rm> remove order",rc.x+8,rc.y+5)
 end
+
+function stacked(o)
+	local os=_scal.transition.ords
+	local len=#os
+
+	fillp(0x6996)
+	exrect'32 16 96 128'.rs(2)
+	?'scene orders',76,120
+	?'current:'..(os[1] and os[1]._prm.id or '-'),34,120,4
+	fillp()
+
+	if isparallel then
+	else
+--		tmap({unpack(os,2)},function(v,i)
+		tmap(os,function(v,i)
+			local prm=v._prm or _prm
+			local r,p,f,s=prm.r,prm.cmd=='ps'
+			if r then
+				if p then
+					f,s=4,9
+				else
+					f,s=5,13
+				end
+					r.rf(f).rs(s)
+					print("     stack order "..prm.id,r.x+8,r.y+2,s)
+			end
+		end)
+	end
+end
+
 
 function _update60()
 	poke(0x5f2d,1)
