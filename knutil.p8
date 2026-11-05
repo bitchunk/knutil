@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 42
+version 43
 __lua__
 --knutil_0.15.0
 --@shiftalow / bitchunk
@@ -224,13 +224,13 @@ end
 end
 
 --scenes
-_odkey=msplit'_rate _cnt _rm _fst _lst _nm _dur _prm'
+_odkey=split'_rate,_cnt,_rm,_fst,_lst,_nm,_dur,_prm'
 function scorder(...)
 local o={}
 return cat(o,comb(_odkey,{
 function(d,r,c)
 local f,t=unpack(ttable(d) or msplit(d))
-r=r or _dur
+r=max(r or _dur,1)
 return min(c or _cnt,r)/max(r,1)*(t-f)+f
 end
 ,0,false,true,false
@@ -241,9 +241,8 @@ end
 _scal={}
 function mkscenes(keys)
 return tmap(ttable(keys) or msplit(keys),function(v)
---return tmap(ttable(keys) or {keys},function(v)
 local o={}
-_scal[v]=cat(o,comb(msplit'ps st rm cl fi us env tra ords nm',{
+_scal[v]=cat(o,comb(split'ps,st,rm,cl,fi,cu,us,env,tra,ords,nm',{
 function(...)
 return add(o.ords,scorder(...))
 end
@@ -252,7 +251,7 @@ o.cl()
 return o.ps(...)
 end
 ,function(s)
-s=s and o.fi(s) or not s and o.ords[1]
+s=s and o.fi(s) or not s and o.cu()
 if s then
 del(o.ords,s)._rm=true
 end
@@ -266,22 +265,25 @@ return s
 end
 ,function(key)
 for v in all(o.ords) do
-if (v._nm or _nm)==key or key==v then
-return v
+if v._nm==key or _nm==key or key==v then
+return v end
 end
+return false
 end
+,function(n)
+return o.ords[n or 1]
 end
 ,function(...)
 return add(o.ords,scorder(...),1)
 end
 ,function(c)
-for v in all(_odkey) do
+foreach(_odkey,function(v)
 _ENV[v],c[v]=c[v],_ENV[v]
-end
+end)
 return c
 end
 ,function(n)
-local c=ttable(n) or o.ords[1]
+local c=ttable(n) or o.cu(n)
 if c then
 o.env(c)
 _cnt+=1
@@ -300,22 +302,20 @@ end)
 end
 
 function scmd(b,p,...)
-	return tmap(msplit(replace(b,"\t",""),"\n",' '),function(v)
-		local s,m,f,d=unpack(v)
-		return s=='' and 'eoc' or _scal[s] and _scal[s][m](f,tonum(d),p) or false
-	end)
-	,... and scmd(...)
-end
-cmdscenes=scmd
-
-function transitionp(v)
-	for i,o in pairs({unpack(v.ords)}) do
-	 v.tra(o)
- end
+p=p or {}
+return tmap(msplit(join("",unpack(split(b,"\t"))),"\n",' '),function(v)
+local s,m,f,d=unpack(v)
+return s=='' and 'ncmd' or _scal[s] and _scal[s][m](f,tonum(d),p) or false
+end)
+,... and scmd(...)
 end
 
 function transition(v)
- v.tra()
+v.tra()
+end
+
+function transitionp(v)
+foreach(v.ords,v.tra)
 end
 -->8
 --set3:debugging
@@ -877,6 +877,9 @@ end
 -->8
 --[[
 update history
+**v0.16.0**
+- scenes:
+
 **v0.15.0**
 - update snippets
 	- bpack[v0.2],bunpack[v0.2a],htbl[v0.5b],htd[v0.1-short],join[v0.3a],oprint[v0.4],replace[v0.2-short]
